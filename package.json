@@ -1,0 +1,17 @@
+{
+  "name": "krionics-os",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@9.12.0",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "npm -w @krionics/schema run build && npm -w @krionics/ai-provider run build"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.5.4"
+  }
+}
