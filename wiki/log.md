@@ -21,7 +21,10 @@
 - Added raw source and summary page.
 - Added ingest record and updated index.
 
-## [2026-05-21] scaffold | monorepo + schema + ai-provider
-- Scaffolded npm workspace monorepo structure.
-- Added `@krionics/schema` and `@krionics/ai-provider` packages.
-- Verified build with `npm install` and `npm run build`.
+## [2026-05-21] build | Supabase schema migration
+- Wrote 17 SQL migration files covering enums, all core tables, RICR subsystem, partitioned tables, RLS policies, and triggers.
+- Created packages/db migration runner (migrate.ts, postgres npm package, DATABASE_URL direct connection).
+- Added db:migrate script to root package.json and DATABASE_URL to .env.example.
+- Committed 25 files as 83de6af on branch claude/hopeful-planck-q4WyA.
+- Added wiki/sources/2026-05-21-supabase-schema-migration.md and wiki/architecture/database-schema.md.
+- Updated wiki/index.md and wiki/log.md.

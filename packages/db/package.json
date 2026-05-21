@@ -1,0 +1,17 @@
+{
+  "name": "@krionics/db",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "migrate": "node --import tsx/esm src/migrate.ts"
+  },
+  "dependencies": {
+    "postgres": "^3.4.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.4"
+  }
+}
