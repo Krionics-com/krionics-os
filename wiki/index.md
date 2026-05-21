@@ -18,6 +18,9 @@ Sources
 Concepts
 - [wiki/concepts/llm-wiki.md](concepts/llm-wiki.md) - Concept page for the LLM Wiki pattern.
 
+Projects
+- [wiki/projects/2026-05-21-monorepo-scaffold.md](projects/2026-05-21-monorepo-scaffold.md) - Monorepo scaffold and AI provider DIP implementation.
+
 Ingest records
 - [wiki/ingest/2026-05-20-llm-wiki-idea.md](ingest/2026-05-20-llm-wiki-idea.md) - First ingest example and actions taken.
 - [wiki/ingest/2026-05-20-krionics-os-architecture.md](ingest/2026-05-20-krionics-os-architecture.md) - Ingest record for the Krionics OS architecture document.

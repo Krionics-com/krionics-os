@@ -46,6 +46,7 @@ Evidence and citations
 Index and log rules
 - Update wiki/index.md whenever a wiki page is created or changed.
 - Append to wiki/log.md for every ingest, query result saved, or lint pass.
+- If repository structure, architecture, or scaffold changes are introduced, add a project or status page and log the change.
 - Log entry format: "## [YYYY-MM-DD] type | short description".
 
 Ingest workflow (single source)
