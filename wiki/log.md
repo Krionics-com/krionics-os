@@ -60,3 +60,6 @@
 - Bootstrapped apps/dashboard Next.js 14 app with auth, middleware, and core review queue pages.
 - Added reply-item API routes, approve/reject flows with audit logging, and operator password migration seed.
 - Documented dashboard in wiki/projects and updated index.
+
+## [2026-05-22] fix | Dashboard API route stability
+- Fixed reply-items list query composition and dynamic route param handling after initial smoke tests.

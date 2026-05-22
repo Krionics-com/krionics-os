@@ -36,7 +36,10 @@ export async function GET(req: NextRequest) {
     conditions.push(sql`ri.client_id = ANY(${operator.client_access})`);
   }
 
-  const whereClause = sql.join(conditions, sql` AND `);
+  let whereClause = conditions[0];
+  for (let i = 1; i < conditions.length; i += 1) {
+    whereClause = sql`${whereClause} AND ${conditions[i]}`;
+  }
 
   const rows = await sql`
     SELECT

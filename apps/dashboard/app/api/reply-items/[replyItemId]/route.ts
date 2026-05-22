@@ -2,7 +2,11 @@ import { NextResponse, type NextRequest } from "next/server";
 import { sql } from "@/lib/db";
 import { getTokenFromRequest, verifyToken } from "@/lib/auth";
 
-export async function GET(req: NextRequest, { params }: { params: { replyItemId: string } }) {
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ replyItemId: string }> }
+) {
+  const { replyItemId } = await params;
   const token = getTokenFromRequest(req);
   if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -92,7 +96,7 @@ export async function GET(req: NextRequest, { params }: { params: { replyItemId:
     LEFT JOIN raw_replies rr ON rr.id = ri.raw_reply_id
     LEFT JOIN leads l ON l.id = ri.lead_id
     LEFT JOIN clients c ON c.id = ri.client_id
-    WHERE ri.id = ${params.replyItemId}
+    WHERE ri.id = ${replyItemId}
     LIMIT 1
   `;
 

@@ -7,7 +7,11 @@ const RejectSchema = z.object({
   rejection_reason: z.string().min(1)
 });
 
-export async function POST(req: NextRequest, { params }: { params: { replyItemId: string } }) {
+export async function POST(
+  req: NextRequest,
+  { params }: { params: Promise<{ replyItemId: string }> }
+) {
+  const { replyItemId } = await params;
   const token = getTokenFromRequest(req);
   if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -34,7 +38,7 @@ export async function POST(req: NextRequest, { params }: { params: { replyItemId
   }[]>`
     SELECT id, client_id, trace_id, draft_id
     FROM reply_items
-    WHERE id = ${params.replyItemId}
+    WHERE id = ${replyItemId}
   `;
 
   if (!replyItem) {
