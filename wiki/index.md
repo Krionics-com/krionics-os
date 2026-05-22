@@ -22,6 +22,10 @@ Architecture
 - [wiki/architecture/standards.md](architecture/standards.md) - Architecture documentation standard.
 - [wiki/architecture/database-schema.md](architecture/database-schema.md) - PostgreSQL schema overview: table groups, RICR subsystem, partitioned tables, key design decisions.
 
+Projects
+- [wiki/projects/2026-05-21-monorepo-scaffold.md](projects/2026-05-21-monorepo-scaffold.md) - Monorepo scaffold and AI provider DIP implementation.
+- [wiki/projects/2026-05-22-supabase-pooler-migration-fix.md](projects/2026-05-22-supabase-pooler-migration-fix.md) - Supabase session pooler migration fix and RLS policy correction.
+
 Ingest records
 - [wiki/ingest/2026-05-20-llm-wiki-idea.md](ingest/2026-05-20-llm-wiki-idea.md) - First ingest example and actions taken.
 - [wiki/ingest/2026-05-20-krionics-os-architecture.md](ingest/2026-05-20-krionics-os-architecture.md) - Ingest record for the Krionics OS architecture document.

@@ -28,3 +28,8 @@
 - Committed 25 files as 83de6af on branch claude/hopeful-planck-q4WyA.
 - Added wiki/sources/2026-05-21-supabase-schema-migration.md and wiki/architecture/database-schema.md.
 - Updated wiki/index.md and wiki/log.md.
+
+## [2026-05-22] fix | Supabase pooler migration
+- Added a session pooler-based `DATABASE_URL` path to avoid IPv4 direct connection costs.
+- Fixed `supabase/migrations/20260521000016_rls_policies.sql` so `uuid[]` containment uses `@>` instead of invalid `uuid = uuid[]` semantics.
+- Created `wiki/projects/2026-05-22-supabase-pooler-migration-fix.md` to capture this learning.
