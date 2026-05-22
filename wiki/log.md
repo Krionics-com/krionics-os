@@ -33,3 +33,14 @@
 - Added a session pooler-based `DATABASE_URL` path to avoid IPv4 direct connection costs.
 - Fixed `supabase/migrations/20260521000016_rls_policies.sql` so `uuid[]` containment uses `@>` instead of invalid `uuid = uuid[]` semantics.
 - Created `wiki/projects/2026-05-22-supabase-pooler-migration-fix.md` to capture this learning.
+
+## [2026-05-22] build | RICR queue workers
+- Added `@krionics/workers` with BullMQ queues and workers for ingest, classify, draft, and review dispatch.
+- Implemented PostgreSQL writes for RICR tables with idempotency and trace propagation.
+- Added unit tests for routing helpers and updated build scripts.
+
+## [2026-05-22] test | RICR integration smoke test
+- Started workers locally using `REDIS_URL` (Upstash TCP URL) and `DATABASE_URL` (Supabase pooler).
+- Executed `scripts/integration/test-ingest.ts` to seed a `client/campaign/lead`, enqueue an ingest job, and confirm `reply_items` was created and progressed to `CLASSIFYING`.
+- OpenAI returned a 429 `insufficient_quota` during live `classify()` calls. To continue testing we inserted synthetic `reply_classifications` and `reply_drafts` using `scripts/integration/insert-fake-class-draft.ts`, which advanced the `reply_items` to `PENDING_REVIEW`.
+- Outcome: end-to-end worker flow validated up to draft creation and review dispatch logic without consuming additional OpenAI quota.

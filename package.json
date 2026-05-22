@@ -8,7 +8,7 @@
     "apps/*"
   ],
   "scripts": {
-    "build": "npm -w @krionics/schema run build && npm -w @krionics/ai-provider run build",
+    "build": "npm -w @krionics/schema run build && npm -w @krionics/ai-provider run build && npm -w @krionics/workers run build",
     "db:migrate": "pnpm --filter @krionics/db run migrate"
   },
   "devDependencies": {
