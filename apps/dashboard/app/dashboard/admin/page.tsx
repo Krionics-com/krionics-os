@@ -34,25 +34,25 @@ export default function AdminPage() {
   const [authError, setAuthError] = useState<string | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
-  const [editOperator, setEditOperator] = useState<OperatorRow | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);
   const [createSuccess, setCreateSuccess] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  
   const [createForm, setCreateForm] = useState({
     email: "",
     name: "",
     role: "reviewer",
+    password: "",
     clientAccess: ""
   });
 
-  const { data, error, isLoading, mutate } = useSWR("/api/operators", fetcher, {
+  const { data, error, isLoading, mutate } = useSWR("/api/admin/operators", fetcher, {
     revalidateOnFocus: true,
     keepPreviousData: true,
     onErrorRetry: (err, _key, _config, revalidate, opts) => {
       if (!isRetryableStatus(err?.status) || opts.retryCount >= 3) {
         return;
       }
-
       const delay = 1000 * Math.pow(2, opts.retryCount);
       setTimeout(() => revalidate({ retryCount: opts.retryCount + 1 }), delay);
     }
@@ -87,7 +87,7 @@ export default function AdminPage() {
   const rows = useMemo(() => data?.data ?? [], [data]);
 
   const resetCreateForm = () => {
-    setCreateForm({ email: "", name: "", role: "reviewer", clientAccess: "" });
+    setCreateForm({ email: "", name: "", role: "reviewer", password: "", clientAccess: "" });
   };
 
   const parseClientAccess = (value: string) => {
@@ -105,20 +105,26 @@ export default function AdminPage() {
       setCreateSuccess(null);
       setActionError(null);
 
+      if (createForm.password.length < 8) {
+        setCreateError("Password must be at least 8 characters long.");
+        return;
+      }
+
       try {
         const payload = {
           email: createForm.email,
           name: createForm.name,
           role: createForm.role,
+          password: createForm.password,
           client_access: parseClientAccess(createForm.clientAccess)
         };
-        const response = await fetchJsonWithRetry<{ temp_password: string }>("/api/operators", {
+        await fetchJsonWithRetry("/api/admin/operators", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
         });
         resetCreateForm();
-        setCreateSuccess(`Temporary password: ${response.temp_password}`);
+        setCreateSuccess("Operator created successfully.");
         setCreateOpen(false);
         await mutate();
       } catch (err) {
@@ -132,14 +138,14 @@ export default function AdminPage() {
     async (operator: OperatorRow) => {
       setActionError(null);
       try {
-        await fetchJsonWithRetry(`/api/operators/${operator.id}`, {
+        await fetchJsonWithRetry(`/api/admin/operators/${operator.id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ is_active: !operator.is_active })
         });
         await mutate();
       } catch (err) {
-        setActionError(getErrorMessage(err, "Failed to update operator"));
+        setActionError(getErrorMessage(err, "Failed to update operator status"));
       }
     },
     [mutate]
@@ -153,7 +159,7 @@ export default function AdminPage() {
 
       setActionError(null);
       try {
-        await fetchJsonWithRetry(`/api/operators/${operator.id}`, { method: "DELETE" });
+        await fetchJsonWithRetry(`/api/admin/operators/${operator.id}`, { method: "DELETE" });
         await mutate();
       } catch (err) {
         setActionError(getErrorMessage(err, "Failed to deactivate operator"));
@@ -162,27 +168,21 @@ export default function AdminPage() {
     [mutate]
   );
 
-  const handleEditSave = useCallback(
-    async (event: React.FormEvent) => {
-      event.preventDefault();
-      if (!editOperator) {
-        return;
-      }
-
+  const handleRoleChange = useCallback(
+    async (operatorId: string, newRole: string) => {
       setActionError(null);
       try {
-        await fetchJsonWithRetry(`/api/operators/${editOperator.id}`, {
+        await fetchJsonWithRetry(`/api/admin/operators/${operatorId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ role: editOperator.role })
+          body: JSON.stringify({ role: newRole })
         });
-        setEditOperator(null);
         await mutate();
       } catch (err) {
         setActionError(getErrorMessage(err, "Failed to update role"));
       }
     },
-    [editOperator, mutate]
+    [mutate]
   );
 
   if (authError) {
@@ -194,16 +194,20 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Admin</h1>
-          <p className="text-sm text-gray-500">Manage operator accounts and access.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900">Admin Panel</h1>
+          <p className="text-sm text-gray-500">Manage operator profiles, role designations, and active access states.</p>
         </div>
         <button
           type="button"
-          onClick={() => setCreateOpen(true)}
-          className="min-h-[44px] rounded-md bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800"
+          onClick={() => {
+            setCreateSuccess(null);
+            setCreateError(null);
+            setCreateOpen(true);
+          }}
+          className="flex min-h-[44px] items-center justify-center rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-gray-800"
         >
           Create Operator
         </button>
@@ -211,59 +215,71 @@ export default function AdminPage() {
 
       {actionError && <ErrorState message={actionError} onRetry={() => mutate()} />}
       {createSuccess && (
-        <div className="rounded-md border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800 animate-fade-in">
           {createSuccess}
         </div>
       )}
 
       {isLoading && <LoadingSpinner label="Loading operators..." />}
       {error && !rows.length && (
-        <ErrorState message={getErrorMessage(error, "Failed to load operators")}" onRetry={() => mutate()} />
+        <ErrorState message={getErrorMessage(error, "Failed to load operators")} onRetry={() => mutate()} />
       )}
 
       {rows.length > 0 && (
-        <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
-          <table className="min-w-[900px] divide-y divide-gray-200 text-sm">
-            <thead className="bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+        <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-xs">
+          <table className="w-full min-w-[900px] divide-y divide-gray-200 text-left text-sm">
+            <thead className="bg-gray-50 text-xs font-semibold uppercase tracking-wider text-gray-500">
               <tr>
-                <th className="px-4 py-3">Email</th>
-                <th className="px-4 py-3">Name</th>
-                <th className="px-4 py-3">Role</th>
-                <th className="px-4 py-3">Active</th>
-                <th className="px-4 py-3">Created</th>
-                <th className="px-4 py-3">Actions</th>
+                <th className="px-6 py-4">Name</th>
+                <th className="px-6 py-4">Email</th>
+                <th className="px-6 py-4">Role</th>
+                <th className="px-6 py-4">Status</th>
+                <th className="px-6 py-4">Created At</th>
+                <th className="px-6 py-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-gray-100 bg-white">
               {rows.map((row) => (
-                <tr key={row.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3">{row.email}</td>
-                  <td className="px-4 py-3">{row.name}</td>
-                  <td className="px-4 py-3">{row.role}</td>
-                  <td className="px-4 py-3">{row.is_active ? "Yes" : "No"}</td>
-                  <td className="px-4 py-3 text-gray-500">
+                <tr key={row.id} className="hover:bg-gray-50/55 transition-colors">
+                  <td className="px-6 py-4 font-medium text-gray-900">{row.name}</td>
+                  <td className="px-6 py-4 text-gray-600">{row.email}</td>
+                  <td className="px-6 py-4">
+                    <select
+                      value={row.role}
+                      onChange={(e) => handleRoleChange(row.id, e.target.value)}
+                      className="min-h-[44px] rounded-lg border border-gray-300 bg-white px-2 py-1 text-sm shadow-xs transition-colors focus:border-gray-900 focus:outline-hidden"
+                    >
+                      <option value="admin">admin</option>
+                      <option value="reviewer">reviewer</option>
+                    </select>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span
+                      className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-semibold ring-1 ring-inset ${
+                        row.is_active
+                          ? "bg-emerald-50 text-emerald-700 ring-emerald-600/20"
+                          : "bg-red-50 text-red-700 ring-red-600/20"
+                      }`}
+                    >
+                      {row.is_active ? "Active" : "Inactive"}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-gray-500">
                     {new Date(row.created_at).toLocaleString()}
                   </td>
-                  <td className="px-4 py-3">
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setEditOperator(row)}
-                        className="min-h-[44px] rounded-md border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100"
-                      >
-                        Edit Role
-                      </button>
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex justify-end gap-2">
                       <button
                         type="button"
                         onClick={() => handleToggleActive(row)}
-                        className="min-h-[44px] rounded-md border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100"
+                        className="flex min-h-[44px] items-center rounded-lg border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100"
                       >
                         {row.is_active ? "Deactivate" : "Activate"}
                       </button>
                       <button
                         type="button"
                         onClick={() => handleDelete(row)}
-                        className="min-h-[44px] rounded-md border border-red-200 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50"
+                        className="flex min-h-[44px] items-center rounded-lg border border-red-200 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50"
                       >
                         Delete
                       </button>
@@ -277,54 +293,91 @@ export default function AdminPage() {
       )}
 
       {createOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-lg rounded-lg bg-white p-6">
-            <h2 className="text-lg font-semibold">Create Operator</h2>
-            <form onSubmit={handleCreate} className="mt-4 space-y-4">
-              <label className="block text-sm font-medium text-gray-700">
-                Email
-                <input
-                  type="email"
-                  className="mt-1 min-h-[44px] w-full rounded-md border border-gray-300 px-3 py-2"
-                  value={createForm.email}
-                  onChange={(event) => setCreateForm({ ...createForm, email: event.target.value })}
-                  required
-                />
-              </label>
-              <label className="block text-sm font-medium text-gray-700">
-                Name
-                <input
-                  className="mt-1 min-h-[44px] w-full rounded-md border border-gray-300 px-3 py-2"
-                  value={createForm.name}
-                  onChange={(event) => setCreateForm({ ...createForm, name: event.target.value })}
-                  required
-                />
-              </label>
-              <label className="block text-sm font-medium text-gray-700">
-                Role
-                <select
-                  className="mt-1 min-h-[44px] w-full rounded-md border border-gray-300 px-3 py-2"
-                  value={createForm.role}
-                  onChange={(event) => setCreateForm({ ...createForm, role: event.target.value })}
-                >
-                  <option value="admin">admin</option>
-                  <option value="reviewer">reviewer</option>
-                </select>
-              </label>
-              <label className="block text-sm font-medium text-gray-700">
-                Client Access (comma-separated UUIDs)
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-lg rounded-xl bg-white p-6 shadow-xl animate-scale-up">
+            <h2 className="text-lg font-bold text-gray-900">Create Operator</h2>
+            <p className="mt-1 text-sm text-gray-500">Register a new operator with distinct permissions and credentials.</p>
+            
+            <form onSubmit={handleCreate} className="mt-6 space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700" htmlFor="operator-name">
+                    Name
+                  </label>
+                  <input
+                    id="operator-name"
+                    type="text"
+                    className="mt-1 flex min-h-[44px] w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-xs focus:border-gray-900 focus:outline-hidden"
+                    value={createForm.name}
+                    onChange={(event) => setCreateForm({ ...createForm, name: event.target.value })}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700" htmlFor="operator-email">
+                    Email
+                  </label>
+                  <input
+                    id="operator-email"
+                    type="email"
+                    className="mt-1 flex min-h-[44px] w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-xs focus:border-gray-900 focus:outline-hidden"
+                    value={createForm.email}
+                    onChange={(event) => setCreateForm({ ...createForm, email: event.target.value })}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700" htmlFor="operator-role">
+                    Role
+                  </label>
+                  <select
+                    id="operator-role"
+                    className="mt-1 flex min-h-[44px] w-full rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white shadow-xs focus:border-gray-900 focus:outline-hidden"
+                    value={createForm.role}
+                    onChange={(event) => setCreateForm({ ...createForm, role: event.target.value })}
+                  >
+                    <option value="admin">admin</option>
+                    <option value="reviewer">reviewer</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700" htmlFor="operator-password">
+                    Password (min 8 chars)
+                  </label>
+                  <input
+                    id="operator-password"
+                    type="password"
+                    className="mt-1 flex min-h-[44px] w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-xs focus:border-gray-900 focus:outline-hidden"
+                    value={createForm.password}
+                    onChange={(event) => setCreateForm({ ...createForm, password: event.target.value })}
+                    required
+                    minLength={8}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700" htmlFor="operator-client-access">
+                  Client Access (comma-separated UUIDs)
+                </label>
                 <textarea
-                  className="mt-1 min-h-[96px] w-full rounded-md border border-gray-300 px-3 py-2"
+                  id="operator-client-access"
+                  className="mt-1 flex min-h-[96px] w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-xs focus:border-gray-900 focus:outline-hidden"
                   value={createForm.clientAccess}
                   onChange={(event) => setCreateForm({ ...createForm, clientAccess: event.target.value })}
                   placeholder="Leave empty for all clients"
                 />
-              </label>
-              {createError && <p className="text-sm text-red-600">{createError}</p>}
-              <div className="flex flex-wrap gap-2">
+              </div>
+
+              {createError && <p className="text-sm text-red-650 animate-fade-in">{createError}</p>}
+              
+              <div className="flex flex-wrap gap-2 pt-2">
                 <button
                   type="submit"
-                  className="min-h-[44px] rounded-md bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800"
+                  className="flex min-h-[44px] items-center justify-center rounded-lg bg-gray-900 px-5 py-2 text-sm font-semibold text-white hover:bg-gray-800 transition-colors"
                 >
                   Create
                 </button>
@@ -333,47 +386,9 @@ export default function AdminPage() {
                   onClick={() => {
                     setCreateOpen(false);
                     setCreateError(null);
+                    resetCreateForm();
                   }}
-                  className="min-h-[44px] rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {editOperator && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-md rounded-lg bg-white p-6">
-            <h2 className="text-lg font-semibold">Edit Role</h2>
-            <form onSubmit={handleEditSave} className="mt-4 space-y-4">
-              <div className="text-sm text-gray-600">{editOperator.email}</div>
-              <label className="block text-sm font-medium text-gray-700">
-                Role
-                <select
-                  className="mt-1 min-h-[44px] w-full rounded-md border border-gray-300 px-3 py-2"
-                  value={editOperator.role}
-                  onChange={(event) =>
-                    setEditOperator({ ...editOperator, role: event.target.value })
-                  }
-                >
-                  <option value="admin">admin</option>
-                  <option value="reviewer">reviewer</option>
-                </select>
-              </label>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="submit"
-                  className="min-h-[44px] rounded-md bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800"
-                >
-                  Save
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setEditOperator(null)}
-                  className="min-h-[44px] rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100"
+                  className="flex min-h-[44px] items-center justify-center rounded-lg border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-colors"
                 >
                   Cancel
                 </button>
