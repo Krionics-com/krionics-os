@@ -9,7 +9,7 @@ export default function ReviewQueuePage() {
   const { data, error } = useSWR(
     "/api/reply-items?status=PENDING_REVIEW&skip=0&limit=20",
     fetcher,
-    { refreshInterval: 5000 }
+    { refreshInterval: 3000, revalidateOnFocus: true, shouldRetryOnError: false }
   );
 
   if (error) {
