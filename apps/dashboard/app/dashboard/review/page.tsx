@@ -2,19 +2,44 @@
 
 import useSWR from "swr";
 import { ReplyQueueTable, type ReplyQueueItem } from "@/components/reply-queue-table";
+import { LoadingSpinner } from "@/components/loading-spinner";
+import { ErrorState } from "@/components/error-state";
+import { fetchJson, isRetryableStatus, getErrorMessage } from "@/lib/http";
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+type ReplyItemResponse = {
+  data: any[];
+  total: number;
+};
+
+const fetcher = (url: string) => fetchJson<ReplyItemResponse>(url);
 
 export default function ReviewQueuePage() {
-  const { data, error } = useSWR(
+  const { data, error, isLoading, mutate } = useSWR(
     "/api/reply-items?status=PENDING_REVIEW&skip=0&limit=20",
     fetcher,
-    { refreshInterval: 3000, revalidateOnFocus: true, shouldRetryOnError: false }
+    {
+      refreshInterval: 3000,
+      revalidateOnFocus: true,
+      keepPreviousData: true,
+      onErrorRetry: (err, _key, _config, revalidate, opts) => {
+        if (!isRetryableStatus(err?.status) || opts.retryCount >= 3) {
+          return;
+        }
+        const delay = 1000 * Math.pow(2, opts.retryCount);
+        setTimeout(() => revalidate({ retryCount: opts.retryCount + 1 }), delay);
+      }
+    }
   );
 
-  if (error) {
-    return <div className="text-red-600">Failed to load queue.</div>;
+  if (isLoading && !data) {
+    return <LoadingSpinner label="Loading review queue..." />;
   }
+
+  if (error && !data) {
+    return <ErrorState message={getErrorMessage(error, "Failed to load queue.")} onRetry={() => mutate()} />;
+  }
+
+  const pendingCount = data?.total ?? 0;
 
   const rows: ReplyQueueItem[] = (data?.data ?? []).map((item: any) => ({
     id: item.id,
@@ -28,10 +53,12 @@ export default function ReviewQueuePage() {
   }));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Review Queue</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+            Review Queue ({pendingCount} pending)
+          </h1>
           <p className="text-sm text-gray-500">Pending replies awaiting approval.</p>
         </div>
       </div>
