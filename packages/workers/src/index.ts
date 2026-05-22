@@ -4,6 +4,7 @@ import { createIngestWorker } from "./workers/ingest.js";
 import { createClassifyWorker } from "./workers/classify.js";
 import { createDraftWorker } from "./workers/draft.js";
 import { createReviewDispatchWorker } from "./workers/review-dispatch.js";
+import { createScheduledSendWorker } from "./workers/send.js";
 
 type ManagedWorker = {
   name: string;
@@ -31,7 +32,8 @@ const workers: ManagedWorker[] = [
   { name: "reply:ingest", worker: createIngestWorker() },
   { name: "reply:classification", worker: createClassifyWorker() },
   { name: "reply:draft_generation", worker: createDraftWorker() },
-  { name: "reply:review_dispatch", worker: createReviewDispatchWorker() }
+  { name: "reply:review_dispatch", worker: createReviewDispatchWorker() },
+  { name: "reply:scheduled_send", worker: createScheduledSendWorker() }
 ];
 
 workers.forEach(attachDlqHandler);

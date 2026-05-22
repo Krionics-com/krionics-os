@@ -7,6 +7,7 @@ type WorkerEnv = {
   openaiApiKey?: string;
   openaiBaseUrl?: string;
   openaiModel?: string;
+  instantlyApiKey?: string;
 };
 
 let cachedEnv: WorkerEnv | null = null;
@@ -37,7 +38,8 @@ export function getEnv(): WorkerEnv {
     anthropicModel: process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-20250514",
     openaiApiKey: process.env.OPENAI_API_KEY,
     openaiBaseUrl: process.env.OPENAI_BASE_URL,
-    openaiModel: process.env.OPENAI_MODEL
+    openaiModel: process.env.OPENAI_MODEL,
+    instantlyApiKey: process.env.INSTANTLY_API_KEY
   };
 
   return cachedEnv;

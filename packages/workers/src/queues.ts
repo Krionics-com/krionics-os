@@ -55,6 +55,15 @@ export const reviewDispatchQueue = new Queue("reply-review_dispatch", {
   }
 });
 
+export const scheduledSendQueue = new Queue("reply-scheduled-send", {
+  ...baseQueueOptions,
+  defaultJobOptions: {
+    ...baseQueueOptions.defaultJobOptions,
+    attempts: 5,
+    backoff: { type: "exponential", delay: 5000 }
+  }
+});
+
 export const deadLetterQueue = new Queue("reply-dlq", {
   ...baseQueueOptions,
   defaultJobOptions: {

@@ -44,3 +44,9 @@
 - Executed `scripts/integration/test-ingest.ts` to seed a `client/campaign/lead`, enqueue an ingest job, and confirm `reply_items` was created and progressed to `CLASSIFYING`.
 - OpenAI returned a 429 `insufficient_quota` during live `classify()` calls. To continue testing we inserted synthetic `reply_classifications` and `reply_drafts` using `scripts/integration/insert-fake-class-draft.ts`, which advanced the `reply_items` to `PENDING_REVIEW`.
 - Outcome: end-to-end worker flow validated up to draft creation and review dispatch logic without consuming additional OpenAI quota.
+
+## [2026-05-22] fix | RICR worker bug fixes and scheduled send worker
+- Added missing intents to schema, fixed draft calendly fallback and original_body sourcing, and added BOUNCE_OOO/HOSTILE routing.
+- Updated review dispatch to enforce to_email, corrected from_email fallback, and enqueue scheduled send jobs.
+- Added scheduled send worker to dispatch approved replies through Instantly and update send status.
+- Updated wiki project page and index to reflect the fixes.

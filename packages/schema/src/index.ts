@@ -17,6 +17,8 @@ export const ReplyIntentSchema = z.enum([
   "NURTURE",
   "UNSUBSCRIBE",
   "NOT_RELEVANT",
+  "BOUNCE_OOO",
+  "HOSTILE",
   "UNKNOWN"
 ]);
 export type ReplyIntent = z.infer<typeof ReplyIntentSchema>;

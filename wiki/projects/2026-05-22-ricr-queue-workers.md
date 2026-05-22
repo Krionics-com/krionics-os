@@ -70,6 +70,13 @@ node --env-file=.env --import tsx/esm scripts/integration/check-class-draft.ts
 - Queue name restriction: BullMQ queue names cannot contain `:` characters — queue names were adjusted to use `-` (e.g. `reply-ingest`). See [packages/workers/src/queues.ts](packages/workers/src/queues.ts).
 - OpenAI quota: during integration, OpenAI returned a 429 `insufficient_quota`. To continue testing we inserted synthetic classification + draft rows and advanced the `reply_items` state; see `scripts/integration/insert-fake-class-draft.ts` for the helper used.
 
+## Bug fixes
+
+- Added missing reply intents (`BOUNCE_OOO`, `HOSTILE`) to schema and classifier routing.
+- Draft generation now uses original cold email from raw payload and skips AI draft creation when calendly_link is missing (routes to human review).
+- Review dispatch now fails fast when sending inbox is unknown and enqueues scheduled sends for delivery.
+- Added scheduled send worker to dispatch replies via Instantly and update send state transitions.
+
 ## Tests
 
 - Unit tests: `npm -w @krionics/workers run test` — small routing/utility tests passed during development.

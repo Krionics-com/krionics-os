@@ -1,7 +1,7 @@
 import { Worker } from "bullmq";
 import { z } from "zod";
 import { sql } from "../db.js";
-import { reviewDispatchQueue } from "../queues.js";
+import { reviewDispatchQueue, scheduledSendQueue } from "../queues.js";
 import { addMinutes, replyPriority, shouldAutoSend } from "../utils.js";
 
 const ReviewDispatchSchema = z.object({
@@ -50,9 +50,8 @@ export function createReviewDispatchWorker(): Worker<ReviewDispatchJob> {
 
       const [client] = await sql<{
         automation_level: number;
-        contact_email: string;
       }[]>`
-        SELECT automation_level, contact_email
+        SELECT automation_level
         FROM clients
         WHERE id = ${replyItem.client_id}
       `;
@@ -86,6 +85,12 @@ export function createReviewDispatchWorker(): Worker<ReviewDispatchJob> {
 
       if (!rawReply) {
         throw new Error(`Missing raw_reply ${replyItem.raw_reply_id}`);
+      }
+
+      if (!rawReply.to_email) {
+        throw new Error(
+          `Cannot schedule send: raw_reply ${replyItem.raw_reply_id} has no to_email (sending inbox unknown)`
+        );
       }
 
       const config = await loadConfig([
@@ -159,7 +164,7 @@ export function createReviewDispatchWorker(): Worker<ReviewDispatchJob> {
           ${payload.replyItemId},
           ${payload.draftId},
           ${rawReply.from_email},
-          ${rawReply.to_email ?? client.contact_email},
+          ${rawReply.to_email ?? ""},
           ${draft.subject},
           ${draft.body_text},
           ${draft.body_html},
@@ -179,6 +184,12 @@ export function createReviewDispatchWorker(): Worker<ReviewDispatchJob> {
         SET status = 'approved', approved_at = NOW(), reviewed_at = NOW()
         WHERE id = ${payload.draftId}
       `;
+
+      await scheduledSendQueue.add("scheduled_send", {
+        scheduledSendId: scheduled.id,
+        replyItemId: payload.replyItemId,
+        traceId: payload.traceId ?? null
+      });
 
       return { status: "scheduled", scheduledSendId: scheduled.id };
     },

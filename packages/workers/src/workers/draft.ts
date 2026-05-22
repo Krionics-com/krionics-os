@@ -67,8 +67,9 @@ export function createDraftWorker(): Worker<DraftJob> {
 
       const [rawReply] = await sql<{
         body_text: string;
+        raw_payload: unknown;
       }[]>`
-        SELECT body_text
+        SELECT body_text, raw_payload
         FROM raw_replies
         WHERE id = ${replyItem.raw_reply_id}
       `;
@@ -105,6 +106,23 @@ export function createDraftWorker(): Worker<DraftJob> {
         throw new Error(`Missing client ${replyItem.client_id}`);
       }
 
+      if (!client.calendly_link) {
+        await sql`
+          UPDATE reply_items
+          SET status = 'PENDING_REVIEW'
+          WHERE id = ${payload.replyItemId}
+        `;
+
+        await reviewDispatchQueue.add("review_dispatch", {
+          replyItemId: payload.replyItemId,
+          classificationId: payload.classificationId,
+          draftId: null,
+          traceId: payload.traceId ?? null
+        });
+
+        return { status: "queued_no_calendly" };
+      }
+
       const config = await loadConfig(["draft.prompt_version", "review.sla_hours_default", "ai.default_model"]);
       const promptVersion = config["draft.prompt_version"] ?? "v1.0";
       const modelUsed = config["ai.default_model"] ?? env.anthropicModel;
@@ -114,14 +132,14 @@ export function createDraftWorker(): Worker<DraftJob> {
       const start = Date.now();
       const output = await provider.generateDraft({
         reply_body: rawReply.body_text,
-        original_body: rawReply.body_text,
+        original_body: (rawReply.raw_payload as { original_body?: string } | null)?.original_body ?? "[Original email not available]",
         intent: classification.intent as "POSITIVE" | "OBJECTION" | "FAQ" | "BOOKING_INTENT" | "NURTURE" | "UNSUBSCRIBE" | "NOT_RELEVANT" | "UNKNOWN",
         classification_reasoning: classification.reasoning ?? "",
         client_context: {
           company_name: client.company_name,
           sales_lead_name: client.sales_lead_name ?? "",
           service_description: client.service_description ?? "",
-          calendly_link: client.calendly_link ?? ""
+          calendly_link: client.calendly_link
         }
       });
       const durationMs = Date.now() - start;

@@ -216,6 +216,34 @@ export function createClassifyWorker(): Worker<ClassificationJob> {
         return { status: "nurture" };
       }
 
+      if (validated.intent === "BOUNCE_OOO") {
+        await sql`
+          UPDATE reply_items
+          SET status = 'DISMISSED', resolved_at = NOW()
+          WHERE id = ${payload.replyItemId}
+        `;
+        await sql`
+          UPDATE leads
+          SET lead_status = 'ooo'
+          WHERE id = (SELECT lead_id FROM reply_items WHERE id = ${payload.replyItemId})
+        `;
+        return { status: "dismissed_ooo" };
+      }
+
+      if (validated.intent === "HOSTILE") {
+        await sql`
+          INSERT INTO suppression_list (email, client_id, reason, reply_item_id, suppressed_by)
+          VALUES (${rawReply.from_email}, ${replyItem.client_id}, 'HOSTILE', ${payload.replyItemId}, 'system')
+          ON CONFLICT (email) DO NOTHING
+        `;
+        await sql`
+          UPDATE reply_items
+          SET status = 'SUPPRESSED', resolved_at = NOW()
+          WHERE id = ${payload.replyItemId}
+        `;
+        return { status: "suppressed_hostile" };
+      }
+
       if (requiresDraft) {
         await draftQueue.add("generate_draft", {
           replyItemId: payload.replyItemId,
