@@ -14,7 +14,7 @@ export function Sidebar({ isOpen = true, onClose }: { isOpen?: boolean; onClose?
   const pendingCount = data?.total ?? 0;
 
   return (
-    <aside className={`flex h-full ${isOpen ? "w-64" : "w-0"} flex-col border-r border-gray-200 bg-white px-4 py-6 md:w-64`}>
+    <aside className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-gray-200 bg-white px-4 py-6 transition-transform duration-200 ease-in-out md:static md:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"}`}>
       <div className="mb-6 text-xl font-bold">Krionics</div>
       <nav className="flex flex-col gap-2 text-sm">
         <Link className="rounded-md px-3 py-2 hover:bg-gray-100" href="/dashboard">

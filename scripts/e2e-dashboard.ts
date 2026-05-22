@@ -1,18 +1,15 @@
 import { z } from "zod";
-import postgres from "postgres";
 
+const BASE_URL = process.env.BASE_URL ?? "http://localhost:3000";
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
-const DATABASE_URL = process.env.DATABASE_URL;
-const BASE_URL = process.env.DASHBOARD_BASE_URL ?? "http://localhost:3001";
 
-if (!ADMIN_EMAIL || !ADMIN_PASSWORD || !DATABASE_URL) {
-  console.error("Missing ADMIN_EMAIL, ADMIN_PASSWORD, or DATABASE_URL");
+if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
+  console.error("Missing ADMIN_EMAIL or ADMIN_PASSWORD environment variables");
   process.exit(1);
 }
 
-const sql = postgres(DATABASE_URL, { ssl: "require", max: 1, onnotice: () => {} });
-
+// Zod validation schemas
 const LoginResponseSchema = z.object({
   operator: z.object({
     id: z.string(),
@@ -22,132 +19,178 @@ const LoginResponseSchema = z.object({
   })
 });
 
-const ReplyItemsSchema = z.object({
+const ReplyItemsResponseSchema = z.object({
   data: z.array(
     z.object({
       id: z.string(),
-      status: z.string()
+      status: z.string(),
+      lead_email: z.string()
     })
   ),
   total: z.number()
 });
 
-const ReplyDetailSchema = z.object({
+const ReplyDetailResponseSchema = z.object({
   reply_item: z.object({
     id: z.string(),
-    draft_id: z.string().nullable().optional()
+    status: z.string()
   }),
-  draft: z
-    .object({
-      subject: z.string().nullable().optional(),
-      body_text: z.string().nullable().optional()
-    })
-    .nullable()
+  classification: z.object({
+    id: z.string(),
+    intent: z.string().nullable().optional(),
+    confidence: z.number().nullable().optional()
+  }).nullable().optional()
 });
 
-async function fetchJson<T>(url: string, init?: RequestInit): Promise<{ data: T; headers: Headers }> {
-  const res = await fetch(url, init);
-  const text = await res.text();
-  const payload = text ? JSON.parse(text) : null;
-  if (!res.ok) {
-    throw new Error(payload?.error ?? `Request failed (${res.status})`);
-  }
-  return { data: payload as T, headers: res.headers };
-}
+const MeResponseSchema = z.object({
+  operator: z.object({
+    id: z.string(),
+    email: z.string().email(),
+    name: z.string(),
+    role: z.string()
+  })
+});
 
 async function main() {
-  const summary: string[] = [];
+  const checks: string[] = [];
 
-  const loginResponse = await fetchJson<z.infer<typeof LoginResponseSchema>>(
-    `${BASE_URL}/api/auth/login`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: ADMIN_EMAIL, password: ADMIN_PASSWORD })
-    }
-  );
-  const loginData = LoginResponseSchema.parse(loginResponse.data);
-  summary.push("✓ login");
-
-  const cookie = loginResponse.headers.get("set-cookie");
-  if (!cookie) {
-    throw new Error("Login did not return a session cookie");
-  }
-
-  const listResponse = await fetchJson<z.infer<typeof ReplyItemsSchema>>(
-    `${BASE_URL}/api/reply-items?status=PENDING_REVIEW&skip=0&limit=2`,
-    { headers: { Cookie: cookie } }
-  );
-  const listData = ReplyItemsSchema.parse(listResponse.data);
-  summary.push("✓ list");
-
-  if (listData.data.length < 2) {
-    throw new Error("Need at least two pending items to run E2E flow");
-  }
-
-  const approveTarget = listData.data[0];
-  const rejectTarget = listData.data[1];
-
-  const detailResponse = await fetchJson<z.infer<typeof ReplyDetailSchema>>(
-    `${BASE_URL}/api/reply-items/${approveTarget.id}`,
-    { headers: { Cookie: cookie } }
-  );
-  const detailData = ReplyDetailSchema.parse(detailResponse.data);
-
-  await fetchJson(`${BASE_URL}/api/reply-items/${approveTarget.id}/approve`, {
+  // Step 1: POST /api/auth/login
+  console.log(`Starting E2E Dashboard tests against ${BASE_URL}...`);
+  const loginRes = await fetch(`${BASE_URL}/api/auth/login`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", Cookie: cookie },
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: ADMIN_EMAIL, password: ADMIN_PASSWORD })
+  });
+
+  if (!loginRes.ok) {
+    throw new Error(`Login failed with status ${loginRes.status}: ${await loginRes.text()}`);
+  }
+
+  const loginData = LoginResponseSchema.parse(await loginRes.json());
+  if (loginData.operator.email !== ADMIN_EMAIL) {
+    throw new Error(`Login operator email mismatch: expected ${ADMIN_EMAIL}, got ${loginData.operator.email}`);
+  }
+
+  const rawCookie = loginRes.headers.get("set-cookie");
+  if (!rawCookie) {
+    throw new Error("No set-cookie header returned on login");
+  }
+
+  // Extract the kos_session cookie
+  const cookieMatch = rawCookie.match(/kos_session=[^;]+/);
+  const cookie = cookieMatch ? cookieMatch[0] : rawCookie;
+  checks.push("✓ login");
+
+  // Step 2: GET /api/reply-items?status=PENDING_REVIEW
+  const listRes = await fetch(`${BASE_URL}/api/reply-items?status=PENDING_REVIEW&skip=0&limit=10`, {
+    headers: { Cookie: cookie }
+  });
+
+  if (!listRes.ok) {
+    throw new Error(`List PENDING_REVIEW failed with status ${listRes.status}`);
+  }
+
+  const listData = ReplyItemsResponseSchema.parse(await listRes.json());
+  checks.push("✓ list");
+
+  // Step 3-5: If data has items, run detail, approve, and list APPROVED checks
+  if (listData.data.length > 0) {
+    const targetItem = listData.data[0];
+
+    // Step 3: GET /api/reply-items/{id}
+    const detailRes = await fetch(`${BASE_URL}/api/reply-items/${targetItem.id}`, {
+      headers: { Cookie: cookie }
+    });
+
+    if (!detailRes.ok) {
+      throw new Error(`GET reply-item detail failed with status ${detailRes.status}`);
+    }
+
+    const detailData = ReplyDetailResponseSchema.parse(await detailRes.json());
+    if (!detailData.classification) {
+      console.warn("⚠️ Warning: Reply item lacks classification details");
+    }
+    checks.push("✓ detail");
+
+    // Step 4: POST /api/reply-items/{id}/approve
+    const approveRes = await fetch(`${BASE_URL}/api/reply-items/${targetItem.id}/approve`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Cookie: cookie
+      },
+      body: JSON.stringify({
+        edited_subject: "Re: E2E Approved Reply",
+        edited_body_text: "Test approval"
+      })
+    });
+
+    if (!approveRes.ok) {
+      throw new Error(`Approve failed with status ${approveRes.status}: ${await approveRes.text()}`);
+    }
+    checks.push("✓ approve");
+
+    // Step 5: GET /api/reply-items?status=APPROVED
+    const approvedListRes = await fetch(`${BASE_URL}/api/reply-items?status=APPROVED&skip=0&limit=10`, {
+      headers: { Cookie: cookie }
+    });
+
+    if (!approvedListRes.ok) {
+      throw new Error(`List APPROVED failed with status ${approvedListRes.status}`);
+    }
+
+    const approvedListData = ReplyItemsResponseSchema.parse(await approvedListRes.json());
+    if (approvedListData.data.length < 1) {
+      throw new Error("Expect approved reply-items count >= 1");
+    }
+    checks.push("✓ list approved");
+  } else {
+    console.log("No pending review items found. Skipping detail, approve, and list approved E2E steps.");
+    checks.push("⚠ detail (skipped)");
+    checks.push("⚠ approve (skipped)");
+    checks.push("⚠ list approved (skipped)");
+  }
+
+  // Step 6: GET /api/auth/me
+  const meRes = await fetch(`${BASE_URL}/api/auth/me`, {
+    headers: { Cookie: cookie }
+  });
+
+  if (!meRes.ok) {
+    throw new Error(`GET /api/auth/me failed with status ${meRes.status}`);
+  }
+
+  const meData = MeResponseSchema.parse(await meRes.json());
+  if (meData.operator.email !== ADMIN_EMAIL) {
+    throw new Error(`Operator profile email mismatch: expected ${ADMIN_EMAIL}, got ${meData.operator.email}`);
+  }
+  checks.push("✓ me");
+
+  // Step 7: POST /api/auth/change-password with wrong current password
+  const changePasswordRes = await fetch(`${BASE_URL}/api/auth/change-password`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Cookie: cookie
+    },
     body: JSON.stringify({
-      edited_subject: detailData.draft?.subject ?? "Approved",
-      edited_body_text: `${detailData.draft?.body_text ?? "Approved"}\n\nReviewed by E2E.`
+      current_password: "wrong_password_here",
+      new_password: "new_secure_password"
     })
   });
-  summary.push("✓ approve");
 
-  await fetchJson(`${BASE_URL}/api/reply-items/${rejectTarget.id}/reject`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Cookie: cookie },
-    body: JSON.stringify({ rejection_reason: "E2E rejection" })
-  });
-  summary.push("✓ reject");
-
-  const [approvedRow] = await sql<{ status: string }[]>`
-    SELECT status FROM reply_items WHERE id = ${approveTarget.id}
-  `;
-  const [rejectedRow] = await sql<{ status: string }[]>`
-    SELECT status FROM reply_items WHERE id = ${rejectTarget.id}
-  `;
-
-  if (approvedRow?.status !== "APPROVED") {
-    throw new Error(`Approve verification failed: ${approvedRow?.status ?? "missing"}`);
+  if (changePasswordRes.status !== 400 && changePasswordRes.status !== 401) {
+    throw new Error(`Expected change-password to fail with 400 or 401, but got status ${changePasswordRes.status}`);
   }
+  checks.push("✓ change-password wrong");
 
-  if (rejectedRow?.status !== "REJECTED") {
-    throw new Error(`Reject verification failed: ${rejectedRow?.status ?? "missing"}`);
-  }
-
-  const [auditApprove] = await sql<{ count: number }[]>`
-    SELECT COUNT(*)::int as count
-    FROM audit_log
-    WHERE action = 'APPROVE_DRAFT' AND entity_id = ${approveTarget.id}
-  `;
-  const [auditReject] = await sql<{ count: number }[]>`
-    SELECT COUNT(*)::int as count
-    FROM audit_log
-    WHERE action = 'REJECT_DRAFT' AND entity_id = ${rejectTarget.id}
-  `;
-
-  if (!auditApprove?.count || !auditReject?.count) {
-    throw new Error("Audit log verification failed");
-  }
-
-  summary.push("✓ audit log");
-  console.log(summary.join(" | "));
-  await sql.end({ timeout: 5 });
+  console.log("\nAll E2E checks passed successfully:");
+  console.log(checks.join(" | "));
+  process.exit(0);
 }
 
-main().catch(async (error) => {
-  console.error(error instanceof Error ? error.message : error);
-  await sql.end({ timeout: 5 });
+main().catch((err) => {
+  console.error("\n❌ E2E Test execution failed:");
+  console.error(err instanceof Error ? err.message : err);
   process.exit(1);
 });

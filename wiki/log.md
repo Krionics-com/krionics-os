@@ -63,3 +63,9 @@
 
 ## [2026-05-22] fix | Dashboard API route stability
 - Fixed reply-items list query composition and dynamic route param handling after initial smoke tests.
+
+## [2026-05-22] build | Operator Dashboard Phase 2
+- Implemented settings profile/change password, admin panel with operator creation modal (plaintext password input), inline role updates, active state toggles, and soft deactivations.
+- Enriched review page SWR config with 3-second polling, cache busting on submission, and tabbed Markdown previewing.
+- Addressed mobile usability via hamburger layouts, horizontal-scrolling queues, and 44px minimum touch targets.
+- Introduced LoadingSpinner, ErrorState boundaries, and built a fetch-only e2e-dashboard script.

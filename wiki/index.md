@@ -27,6 +27,7 @@ Projects
 - [wiki/projects/2026-05-22-supabase-pooler-migration-fix.md](projects/2026-05-22-supabase-pooler-migration-fix.md) - Supabase session pooler migration fix and RLS policy correction.
 - [wiki/projects/2026-05-22-ricr-queue-workers.md](projects/2026-05-22-ricr-queue-workers.md) - BullMQ workers for RICR ingest/classify/draft/review dispatch with bug fixes and scheduled send worker.
 - [wiki/projects/2026-05-22-operator-dashboard-phase1.md](projects/2026-05-22-operator-dashboard-phase1.md) - Operator dashboard Phase 1 (auth, queue list, approve/reject).
+- [wiki/projects/2026-05-22-operator-dashboard-phase2.md](projects/2026-05-22-operator-dashboard-phase2.md) - Operator dashboard Phase 2 (settings, admin, real-time, responsive mobile, markdown editor, e2e, error boundaries).
 
 Ingest records
 - [wiki/ingest/2026-05-20-llm-wiki-idea.md](ingest/2026-05-20-llm-wiki-idea.md) - First ingest example and actions taken.
