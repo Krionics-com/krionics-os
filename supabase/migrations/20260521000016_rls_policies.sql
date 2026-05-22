@@ -28,7 +28,7 @@ CREATE POLICY op_campaigns ON campaigns
     (SELECT role FROM operators WHERE email = auth.email()) IN ('admin', 'reviewer')
     AND (
       (SELECT client_access FROM operators WHERE email = auth.email()) IS NULL
-      OR client_id = ANY((SELECT client_access FROM operators WHERE email = auth.email()))
+      OR (SELECT client_access FROM operators WHERE email = auth.email()) @> ARRAY[client_id]::uuid[]
     )
   );
 
@@ -38,7 +38,7 @@ CREATE POLICY op_leads ON leads
     (SELECT role FROM operators WHERE email = auth.email()) IN ('admin', 'reviewer')
     AND (
       (SELECT client_access FROM operators WHERE email = auth.email()) IS NULL
-      OR client_id = ANY((SELECT client_access FROM operators WHERE email = auth.email()))
+      OR (SELECT client_access FROM operators WHERE email = auth.email()) @> ARRAY[client_id]::uuid[]
     )
   );
 
@@ -48,7 +48,7 @@ CREATE POLICY op_reply_items ON reply_items
     (SELECT role FROM operators WHERE email = auth.email()) IN ('admin', 'reviewer')
     AND (
       (SELECT client_access FROM operators WHERE email = auth.email()) IS NULL
-      OR client_id = ANY((SELECT client_access FROM operators WHERE email = auth.email()))
+      OR (SELECT client_access FROM operators WHERE email = auth.email()) @> ARRAY[client_id]::uuid[]
     )
   );
 
@@ -58,7 +58,7 @@ CREATE POLICY op_reply_drafts ON reply_drafts
     (SELECT role FROM operators WHERE email = auth.email()) IN ('admin', 'reviewer')
     AND (
       (SELECT client_access FROM operators WHERE email = auth.email()) IS NULL
-      OR client_id = ANY((SELECT client_access FROM operators WHERE email = auth.email()))
+      OR (SELECT client_access FROM operators WHERE email = auth.email()) @> ARRAY[client_id]::uuid[]
     )
   );
 
@@ -68,7 +68,7 @@ CREATE POLICY op_review_items ON review_items
     (SELECT role FROM operators WHERE email = auth.email()) IN ('admin', 'reviewer')
     AND (
       (SELECT client_access FROM operators WHERE email = auth.email()) IS NULL
-      OR client_id = ANY((SELECT client_access FROM operators WHERE email = auth.email()))
+      OR (SELECT client_access FROM operators WHERE email = auth.email()) @> ARRAY[client_id]::uuid[]
     )
   );
 
@@ -78,7 +78,7 @@ CREATE POLICY op_meetings ON meetings
     (SELECT role FROM operators WHERE email = auth.email()) IN ('admin', 'reviewer')
     AND (
       (SELECT client_access FROM operators WHERE email = auth.email()) IS NULL
-      OR client_id = ANY((SELECT client_access FROM operators WHERE email = auth.email()))
+      OR (SELECT client_access FROM operators WHERE email = auth.email()) @> ARRAY[client_id]::uuid[]
     )
   );
 
