@@ -55,3 +55,8 @@
 - Added Express webhook handler in apps/webhook-handler to validate HMAC signatures and enqueue reply ingestion jobs.
 - Implemented structured JSON logging, health checks (Redis + DB), and graceful shutdown.
 - Added webhook test script for local validation.
+
+## [2026-05-22] build | Operator dashboard Phase 1
+- Bootstrapped apps/dashboard Next.js 14 app with auth, middleware, and core review queue pages.
+- Added reply-item API routes, approve/reject flows with audit logging, and operator password migration seed.
+- Documented dashboard in wiki/projects and updated index.
