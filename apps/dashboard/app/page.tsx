@@ -3,7 +3,8 @@ import { redirect } from "next/navigation";
 import { getCookieName, verifyToken } from "@/lib/auth";
 
 export default async function Home() {
-  const token = cookies().get(getCookieName())?.value;
+  const cookieStore = await cookies();
+  const token = cookieStore.get(getCookieName())?.value;
 
   if (!token) {
     redirect("/login");
