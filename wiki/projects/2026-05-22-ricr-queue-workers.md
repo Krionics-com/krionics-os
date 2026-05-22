@@ -88,3 +88,8 @@ node --env-file=.env --import tsx/esm scripts/integration/check-class-draft.ts
 - Implement scheduled send worker (consume `scheduled_sends` and call Instantly API).
 - Add n8n nodes or webhook handlers to forward inbound webhooks into `ingestQueue`.
 - Harden idempotency and DLQ monitoring (alerts + Slack integration).
+
+## Webhook trigger layer
+
+- Added an Express webhook handler in `apps/webhook-handler` that validates Instantly HMAC signatures, performs idempotency checks, and enqueues reply ingestion jobs to `reply-ingest`.
+- Includes `/health` endpoint for Redis + DB connectivity, structured JSON logging, and graceful shutdown.

@@ -1,0 +1,25 @@
+{
+  "name": "@krionics/webhook-handler",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/server.js",
+  "types": "./dist/server.d.ts",
+  "scripts": {
+    "dev": "node --import tsx/esm src/server.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/server.js"
+  },
+  "dependencies": {
+    "@krionics/workers": "file:../../packages/workers",
+    "express": "^4.19.2",
+    "postgres": "^3.4.4",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.4"
+  }
+}

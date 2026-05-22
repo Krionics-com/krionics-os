@@ -50,3 +50,8 @@
 - Updated review dispatch to enforce to_email, corrected from_email fallback, and enqueue scheduled send jobs.
 - Added scheduled send worker to dispatch approved replies through Instantly and update send status.
 - Updated wiki project page and index to reflect the fixes.
+
+## [2026-05-22] build | Instantly webhook handler
+- Added Express webhook handler in apps/webhook-handler to validate HMAC signatures and enqueue reply ingestion jobs.
+- Implemented structured JSON logging, health checks (Redis + DB), and graceful shutdown.
+- Added webhook test script for local validation.
