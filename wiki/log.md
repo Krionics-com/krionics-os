@@ -183,3 +183,12 @@
 - Implemented overall sentiments score metrics, turn-by-turn sentiment mini-walk sparklines, auto post-call summaries, and escalation reasoning.
 - Added direct PhoneCall icon navigation linked in the dashboard sidebar menu.
 - Verified error-free compilation of production monorepo Next.js bundle (Exit code 0).
+
+## [2026-05-23] project | Phase 13 — Global Configurations & Feature Flags
+- Applied database DDL migrations creating `feature_flags` and `global_config` schemas with 6 seeded toggle rules and 5 config blocks.
+- Developed Feature Flags toggle UI (/dashboard/admin/features) with real-time responsive cards and interactive toggle switches.
+- Built Global Config page (/dashboard/admin/config) featuring password API key masks, model selectors, temperature range inputs, retry thresholds, queue warning caps, and SLA timings.
+- Integrated full RBAC access control gates checking operator credentials. Renders locked cards and returns 403 Forbidden on unauthorized logins.
+- Embedded deep configurations merging inside `PATCH /api/dashboard/settings/config` route, generating corresponding Phase 11 immutable audit logs tracking changes.
+- Added "Features" and "Configuration" sub-links to the layout Sidebar navigation with `Zap` and `Sliders` icons.
+- Verified error-free Next.js compilation (Exit code 0).
