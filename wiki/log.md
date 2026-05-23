@@ -80,3 +80,13 @@
 - Fixed 4 critical bugs: OperatorToken client_access, session warning spam, token refresh, sidebar colors
 - Implemented 3 missing features: breadcrumb, client switcher, data-table component
 - All E2E tests passing
+
+## [2026-05-23] phase | Dashboard Phase 2 — Database SLA and Operator Assignment Migration
+- Created database migration to add `sla_expires_at` and `assigned_to_operator_id` fields to `reply_items` along with high-performance indexes.
+- Successfully applied and verified the migrations against Supabase using database runner.
+
+## [2026-05-23] phase | Dashboard Phase 2 — Reply Review System UI & APIs
+- Implemented interactive Review Inbox with full-text search, collateral collapsible status filters, and live countdown SlaTimer badges.
+- Created premium Three-Panel Draft Detail Page with chronological email threads, lead and campaign metadata cards, visual AI classification statistics, complete markdown draft editor (Edit / Preview / Split modes), dynamic Approve/Approve with Edits action handlers, Custom LinkedIn SVG, and an overlay Rejection Modal.
+- Built 7 REST API endpoints: GET list, GET detail, POST approve, POST reject, POST regenerate, POST assign, and GET dashboard stats.
+- Verified Next.js dashboard compiles successfully with zero TypeScript or Turbopack errors.
