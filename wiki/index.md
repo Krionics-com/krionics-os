@@ -32,6 +32,7 @@ Projects
 - [wiki/projects/2026-05-23-dashboard-phase2-review-system.md](projects/2026-05-23-dashboard-phase2-review-system.md) - Dashboard Phase 2 — Reply Review System.
 - [wiki/projects/2026-05-23-dashboard-phase3-global-ops.md](projects/2026-05-23-dashboard-phase3-global-ops.md) - Dashboard Phase 3 — Global Ops Dashboard.
 - [wiki/projects/2026-05-23-dashboard-phase4-queue-monitoring.md](projects/2026-05-23-dashboard-phase4-queue-monitoring.md) - Dashboard Phase 4 — Queue Monitoring & DLQ Inspector.
+- [wiki/projects/2026-05-23-dashboard-phase5-client-management.md](projects/2026-05-23-dashboard-phase5-client-management.md) - Dashboard Phase 5 — Client Management & Profiles.
 
 Ingest records
 - [wiki/ingest/2026-05-20-llm-wiki-idea.md](ingest/2026-05-20-llm-wiki-idea.md) - First ingest example and actions taken.

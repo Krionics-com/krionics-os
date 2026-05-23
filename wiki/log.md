@@ -115,3 +115,10 @@
 - Replaced Phase 3 hardcoded mocks: `queue_health` and `failure_rate` now use real BullMQ data.
 - Added `bullmq`, `ioredis`, `recharts` to dashboard dependencies.
 - Updated sidebar with Queues and DLQ navigation items.
+
+## [2026-05-23] project | Phase 5 — client management pages and APIs built
+- Created Client list page (`/dashboard/clients`) with status filters, search, quick actions (pause/archive), and New Client modal trigger.
+- Created Client Profile page (`/dashboard/clients/[slug]`) featuring 8 tabs (Overview, Business Info, ICP, Automation, CRM, Slack, AI, Team) with full view/edit toggling, structured inline forms, custom dynamic TagInput handles, and robust PATCH updates.
+- Built backend APIs for directories, creation validation (unique slug check), profiles, merging of JSONB columns, status shifts (pause/archive), and team retrieval.
+- Integrated `ClientSwitcher` to connect directly to the newly implemented endpoints.
+- Confirmed full monorepo static build completion with zero TypeScript or Next.js errors.
