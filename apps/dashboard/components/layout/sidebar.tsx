@@ -22,7 +22,8 @@ import {
   Bell,
   ClipboardList,
   PhoneCall,
-  Sliders
+  Sliders,
+  Flag,
 } from "lucide-react";
 import useSWR from "swr";
 
@@ -45,7 +46,7 @@ const navigation = [
   { name: "Inboxes", href: "/dashboard/infra/inboxes", icon: Mail },
   { name: "Domains", href: "/dashboard/infra/domains", icon: Globe },
   { name: "Operators", href: "/dashboard/admin", icon: Users, adminOnly: true },
-  { name: "Features", href: "/dashboard/admin/features", icon: Zap, adminOnly: true },
+  { name: "Features", href: "/dashboard/admin/features", icon: Flag, adminOnly: true },
   { name: "Configuration", href: "/dashboard/admin/config", icon: Sliders, adminOnly: true },
   { name: "Settings", href: "/dashboard/settings", icon: Settings },
 ];

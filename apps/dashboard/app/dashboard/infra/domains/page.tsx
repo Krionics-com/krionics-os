@@ -3,10 +3,9 @@
 import { useState, useMemo } from "react";
 import useSWR from "swr";
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import {
-  Globe, RefreshCw, Search, ShieldCheck, ShieldAlert, Check, X,
-  AlertTriangle, ChevronRight, Activity
+  Globe, RefreshCw, Search, Check, X, ChevronRight,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,7 +16,6 @@ import {
   Table, TableBody, TableCell, TableHead,
   TableHeader, TableRow,
 } from "@/components/ui/table";
-import { useRouter as useAppRouter } from "next/navigation";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
@@ -34,7 +32,7 @@ type DomainStats = {
 };
 
 export default function DomainsMonitoringPage() {
-  const router = useAppRouter();
+  const router = useRouter();
   const { data, error, isLoading, mutate } = useSWR(
     "/api/dashboard/infra/domains",
     fetcher
