@@ -96,3 +96,6 @@
 - Created real-time activity feed with 8 event types
 - Built system health status bar for 5 services
 - Created 2 new API endpoints: activity, health
+
+## [2026-05-23] fix | Dashboard Phase 3 — Fix lead name in activity feed
+- Fixed NULL lead names by using first_name + last_name concat instead of l.name

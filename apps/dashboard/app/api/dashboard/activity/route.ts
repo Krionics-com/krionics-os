@@ -22,14 +22,13 @@ export async function GET(req: NextRequest) {
         ri.updated_at,
         c.intent,
         c.confidence,
-        l.name as lead_name,
+        COALESCE(l.first_name || ' ' || l.last_name, l.email) as lead_name,
         l.company as lead_company,
         camp.name as campaign_name
       FROM reply_items ri
       LEFT JOIN reply_classifications c ON ri.id = c.reply_item_id
-      LEFT JOIN raw_replies rr ON ri.raw_reply_id = rr.id
-      LEFT JOIN leads l ON rr.lead_id = l.id
-      LEFT JOIN campaigns camp ON rr.campaign_id = camp.id
+      LEFT JOIN leads l ON ri.lead_id = l.id
+      LEFT JOIN campaigns camp ON ri.campaign_id = camp.id
       WHERE 1=1 ${clientFilter}
       ORDER BY ri.updated_at DESC
       LIMIT 20
