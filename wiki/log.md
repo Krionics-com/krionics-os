@@ -193,6 +193,12 @@
 - Added "Features" and "Configuration" sub-links to the layout Sidebar navigation with `Zap` and `Sliders` icons.
 - Verified error-free Next.js compilation (Exit code 0).
 
+## [2026-05-23] ingest | Krionics OS Master Architecture Document v1.0
+- Ingested full 1970-line architecture spec (v1.0, all 17 sections + appendices).
+- Added wiki/sources/2026-05-23-krionics-os-architecture-v1.md with section-by-section summary.
+- Updated wiki/index.md with source link.
+- Updated wiki/architecture/database-schema.md with reply orchestration extension tables.
+
 ## [2026-05-23] project | Phase 14 — Command Palette & Global Search
 - Developed high-performance search API endpoint `/api/search` using optimized PG `ILIKE` group lookups capped to a max of 5 hits per category.
 - Created premium client-side Command Palette modal (`components/command-palette.tsx`) rendered at body-level using React portals.
@@ -201,3 +207,12 @@
 - Enabled syntax actions matching starting `>` inputs suggesting dynamic campaigns, client profiles, and reviews shortcuts.
 - Fixed table body unique React keys rendering warnings present on the mutable System Audit logs boards.
 - Verified error-free Next.js monorepo production compilation (Exit code 0).
+
+## [2026-05-23] build | Reply Orchestration System Phase 1-3
+- Phase 1: Created 10 Supabase migrations (006–015) adding 6 new tables (enriched_leads, events, lead_state_history, reply_policies, timing_rules, response_queue) and column extensions to clients, leads, raw_replies, reply_drafts.
+- Phase 2: Implemented Instantly webhook handler at `apps/dashboard/app/api/webhooks/instantly/route.ts` with HMAC-SHA256 signature verification, 202 Accepted response, and BullMQ ingestQueue enqueue.
+- Phase 3: Implemented lead state machine at `apps/dashboard/lib/lead-state-machine.ts` with 27 states, validated transitions, and audit trail recording in lead_state_history.
+- Created apps/dashboard/lib/queues.ts to re-export BullMQ queues from @krionics/workers package.
+- All prior RICR workers (ingest/classify/draft/review-dispatch/send) were already implemented and connect automatically via the queues.
+- Merged to main via PR #4 (squash merge from claude/hopeful-planck-q4WyA).
+- Added wiki/projects/2026-05-23-reply-orchestration-phase1-3.md and updated index, log, and database-schema.md.

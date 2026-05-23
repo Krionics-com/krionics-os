@@ -14,6 +14,7 @@ Sources
 - [wiki/sources/2026-05-20-krionics-os-blueprint.md](sources/2026-05-20-krionics-os-blueprint.md) - Summary of the Krionics OS implementation blueprint.
 - [wiki/sources/2026-05-20-krionics-os-reply-subsystem.md](sources/2026-05-20-krionics-os-reply-subsystem.md) - Summary of the reply ingestion and review subsystem.
 - [wiki/sources/2026-05-21-supabase-schema-migration.md](sources/2026-05-21-supabase-schema-migration.md) - Detailed record of the 17-migration Supabase schema build and packages/db runner.
+- [wiki/sources/2026-05-23-krionics-os-architecture-v1.md](sources/2026-05-23-krionics-os-architecture-v1.md) - Full summary of Master System Architecture Document v1.0 (canonical reference). Covers all 17 sections including state machine, event catalog, queue definitions, AI invocation points, automation levels, prompt engineering, and implementation status.
 
 Concepts
 - [wiki/concepts/llm-wiki.md](concepts/llm-wiki.md) - Concept page for the LLM Wiki pattern.
@@ -42,6 +43,7 @@ Projects
 - [wiki/projects/2026-05-23-dashboard-phase12-voice-agents.md](projects/2026-05-23-dashboard-phase12-voice-agents.md) - Dashboard Phase 12 — Voice Agents Call Monitoring.
 - [wiki/projects/2026-05-23-dashboard-phase13-admin-config.md](projects/2026-05-23-dashboard-phase13-admin-config.md) - Dashboard Phase 13 — Global Configurations & Feature Flags.
 - [wiki/projects/2026-05-23-dashboard-phase14-search.md](projects/2026-05-23-dashboard-phase14-search.md) - Dashboard Phase 14 — Command Palette & Global Search.
+- [wiki/projects/2026-05-23-reply-orchestration-phase1-3.md](projects/2026-05-23-reply-orchestration-phase1-3.md) - Reply Orchestration System Phase 1-3: DB migrations (enriched_leads, events, lead_state_history, reply_policies, timing_rules, response_queue), Instantly webhook handler, lead state machine. Merged to main via PR #4.
 
 Ingest records
 - [wiki/ingest/2026-05-20-llm-wiki-idea.md](ingest/2026-05-20-llm-wiki-idea.md) - First ingest example and actions taken.
