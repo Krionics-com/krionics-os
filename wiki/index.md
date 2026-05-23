@@ -29,6 +29,7 @@ Projects
 - [wiki/projects/2026-05-22-operator-dashboard-phase1.md](projects/2026-05-22-operator-dashboard-phase1.md) - Operator dashboard Phase 1 (auth, queue list, approve/reject).
 - [wiki/projects/2026-05-22-operator-dashboard-phase2.md](projects/2026-05-22-operator-dashboard-phase2.md) - Operator dashboard Phase 2 (settings, admin, real-time, responsive mobile, markdown editor, e2e, error boundaries).
 - [wiki/projects/2026-05-23-dashboard-phase1-foundation.md](projects/2026-05-23-dashboard-phase1-foundation.md) - Dashboard Phase 1 — Design Foundation.
+- [wiki/projects/2026-05-23-dashboard-phase2-review-system.md](projects/2026-05-23-dashboard-phase2-review-system.md) - Dashboard Phase 2 — Reply Review System.
 
 Ingest records
 - [wiki/ingest/2026-05-20-llm-wiki-idea.md](ingest/2026-05-20-llm-wiki-idea.md) - First ingest example and actions taken.
