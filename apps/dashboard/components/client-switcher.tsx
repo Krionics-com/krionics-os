@@ -24,7 +24,7 @@ export function ClientSwitcher() {
 
   // Super admins see all clients
   const canSeeAllClients = user?.role === "super_admin" || user?.role === "admin";
-  const clientList = canSeeAllClients ? clients?.data || [] : [];
+  const clientList = canSeeAllClients ? clients?.clients || [] : [];
 
   if (!canSeeAllClients || !clientList.length) {
     return <span className="text-sm text-muted-foreground">All Clients</span>;
