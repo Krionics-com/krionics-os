@@ -23,8 +23,8 @@ export async function GET(req: NextRequest) {
         o.id,
         o.name,
         o.email,
-        COUNT(r.id) FILTER (WHERE r.action_taken = 'approve')::int as approved_count,
-        COUNT(r.id) FILTER (WHERE r.action_taken = 'reject')::int as rejected_count,
+        COUNT(r.id) FILTER (WHERE r.action_taken IN ('APPROVE', 'EDIT_AND_APPROVE'))::int as approved_count,
+        COUNT(r.id) FILTER (WHERE r.action_taken = 'REJECT')::int as rejected_count,
         AVG(EXTRACT(EPOCH FROM (r.action_at - r.created_at)) / 3600)::float as avg_turnaround_hours,
         COUNT(r.id) FILTER (WHERE r.action_at <= r.created_at + INTERVAL '4 hours')::int as within_sla_count,
         COUNT(r.id)::int as total_reviews
