@@ -122,3 +122,11 @@
 - Built backend APIs for directories, creation validation (unique slug check), profiles, merging of JSONB columns, status shifts (pause/archive), and team retrieval.
 - Integrated `ClientSwitcher` to connect directly to the newly implemented endpoints.
 - Confirmed full monorepo static build completion with zero TypeScript or Next.js errors.
+
+## [2026-05-23] project | Phase 6 — campaign management, funnel, sequence, activity
+- Created Campaign list page (`/dashboard/campaigns`) with client filters, status selectors, search, and action managers (pause/resume/archive/duplicate/mock exports).
+- Created Campaign Detail page (`/dashboard/campaigns/[id]`) with 6 tabs (Overview cards, Recharts custom horizontal Funnel bars, sequence steps table, Inbox Health grades, Recharts Lead state PieCharts, and live activity logs).
+- Added dynamic polling mechanism to timeline events refreshing every 5 seconds.
+- Built backend campaign endpoints for filtering directories, detailed config parameters, PATCH inline updates, and duplication cloning routines.
+- Updated sidebar layout navigation adding direct access to Campaigns dashboard.
+- Verified successful NextJS monorepo production build with zero errors.

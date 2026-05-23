@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
   Inbox,
+  Zap,
   Building2,
   Activity,
   AlertTriangle,
@@ -20,6 +21,7 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Review Queue", href: "/dashboard/review", icon: Inbox },
+  { name: "Campaigns", href: "/dashboard/campaigns", icon: Zap },
   { name: "Clients", href: "/dashboard/clients", icon: Building2 },
   { name: "Queues", href: "/dashboard/queues", icon: Activity },
   { name: "DLQ", href: "/dashboard/dlq", icon: AlertTriangle },
