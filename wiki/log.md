@@ -75,3 +75,8 @@
 - Rebuilt layout shell with Sidebar, Topbar, and AuthShell.
 - Redesigned operator login page.
 - Implemented RBAC middleware and SessionManager.
+
+## [2026-05-23] phase | Dashboard Phase 1 — Bug fixes & missing features
+- Fixed 4 critical bugs: OperatorToken client_access, session warning spam, token refresh, sidebar colors
+- Implemented 3 missing features: breadcrumb, client switcher, data-table component
+- All E2E tests passing

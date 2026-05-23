@@ -178,11 +178,21 @@
   },
   "active": "026dfa2a7c31a26f",
   "lastOpenFiles": [
+    "apps/dashboard/components/ui/data-table.tsx",
+    "node_modules/@tanstack/react-table/src/index.tsx",
+    "node_modules/@tanstack/react-table/src",
+    "node_modules/@tanstack/table-core/LICENSE",
+    "node_modules/@tanstack/table-core/build/lib/utils.d.ts",
+    "node_modules/@tanstack/table-core/src/utils/getSortedRowModel.ts",
+    "node_modules/@tanstack/table-core/src/utils/getPaginationRowModel.ts",
+    "node_modules/@tanstack/table-core/src/utils/getGroupedRowModel.ts",
+    "node_modules/@tanstack/table-core/src/utils/getFilteredRowModel.ts",
+    "node_modules/@tanstack/table-core/src/utils/getFacetedUniqueValues.ts",
+    "node_modules/@tanstack/table-core/src/utils/getFacetedRowModel.ts",
     "raw/sources/2026-05-20-llm-wiki-idea.md",
     "wiki/index.md",
     "wiki/log.md",
     "wiki/README.md",
-    "krionics valt/Welcome.md",
-    "krionics valt"
+    "krionics valt/Welcome.md"
   ]
 }

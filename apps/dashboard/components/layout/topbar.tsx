@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import { Menu, Search, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Breadcrumb } from "@/components/breadcrumb";
+import { ClientSwitcher } from "@/components/client-switcher";
 
 export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
   const router = useRouter();
@@ -15,7 +17,7 @@ export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
 
   return (
     <header className="flex h-16 items-center justify-between border-b border-border bg-card px-4 md:px-6">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-6">
         <Button
           variant="ghost"
           size="icon"
@@ -25,15 +27,9 @@ export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
         >
           <Menu className="h-5 w-5" />
         </Button>
-        <div className="hidden md:block">
-          <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search..."
-              className="w-64 bg-background pl-8 focus-visible:ring-primary"
-            />
-          </div>
+        <div className="hidden md:flex items-center gap-6">
+          <Breadcrumb />
+          <ClientSwitcher />
         </div>
       </div>
       <div className="flex items-center gap-4">

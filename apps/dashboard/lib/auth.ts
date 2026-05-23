@@ -6,7 +6,7 @@ export type OperatorToken = {
   email: string;
   name: string;
   role: string;
-  client_access: string[] | null;
+  client_access?: string[] | null;
 };
 
 const COOKIE_NAME = "kos_session";

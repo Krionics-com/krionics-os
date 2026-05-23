@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
     email: operator.email,
     name: operator.name,
     role: operator.role,
-    client_access: operator.client_access
+    client_access: operator.client_access || []
   });
 
   const response = NextResponse.json({

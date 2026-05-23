@@ -31,10 +31,27 @@ Set up the design foundation for the entire dashboard, install Shadcn UI, config
 ## API Endpoints
 - Updated `/api/reply-items/[replyItemId]` to explicitly cast `confidence` as a Number, fixing an E2E test type error.
 
+## Bug Fixes Applied
+- Fixed `OperatorToken` type to include `client_access` and ensure it's passed correctly in the login payload.
+- Fixed `SessionManager` toast spam by adding a `warningShown` ref to only trigger the warning once.
+- Fixed token refresh by implementing a dedicated `/api/auth/refresh` endpoint and calling it in `SessionManager`.
+- Fixed sidebar color blending into the main background by explicitly setting `--sidebar` to white in `globals.css`.
+
+## Missing Features Implemented
+- Added `Breadcrumb` component to `Topbar` for navigation context.
+- Added `ClientSwitcher` dropdown to `Topbar` to support multi-tenant filtering.
+- Implemented a reusable `DataTable` component using `@tanstack/react-table` with sorting and pagination capabilities.
+
 ## Testing
-- Ran E2E tests: `npx tsx scripts/e2e-dashboard.ts` (Passed successfully)
-- Verified `npm run build` succeeds without TS errors.
-- Verified local dev server `npm run dev` works with the new layout and login page.
+- **E2E Tests**: `npx tsx scripts/e2e-dashboard.ts` (All passed successfully).
+- **TypeScript**: Verified `npm run build` succeeds without errors.
+- **Manual Verifications**:
+  - Login token contains `client_access` array.
+  - Idle timeout correctly shows only 1 warning toast at 9 minutes.
+  - Token refresh cookie correctly extends expiry.
+  - Sidebar visibly distinct from content area.
+  - Topbar breadcrumb updates according to path.
+  - Topbar client switcher functional.
 
 ## Sources
 - `ANTIGRAVITY_PROMPTS.md` (Phase 1)

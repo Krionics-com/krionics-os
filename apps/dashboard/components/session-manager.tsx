@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -9,6 +9,7 @@ const WARNING_BEFORE_MS = 60 * 1000; // 1 minute warning before logout
 
 export function SessionManager({ children }: { children: React.ReactNode }) {
   const [lastActivity, setLastActivity] = useState(Date.now());
+  const warningShown = useRef(false);
   const router = useRouter();
 
   const handleActivity = useCallback(() => {
@@ -40,7 +41,14 @@ export function SessionManager({ children }: { children: React.ReactNode }) {
           router.push("/login?expired=1");
         });
       } else if (idleTime > IDLE_TIMEOUT_MS - WARNING_BEFORE_MS) {
-        toast.warning("Your session will expire soon due to inactivity. Move your mouse to stay logged in.");
+        // Only show warning once
+        if (!warningShown.current) {
+          warningShown.current = true;
+          toast.warning("Your session will expire soon due to inactivity. Move your mouse to stay logged in.");
+        }
+      } else {
+        // Reset warning when user becomes active again
+        warningShown.current = false;
       }
     }, 10000); // Check every 10s
 
@@ -50,7 +58,7 @@ export function SessionManager({ children }: { children: React.ReactNode }) {
   // Optionally refresh token (e.g. pinging an endpoint every few minutes)
   useEffect(() => {
     const refreshToken = setInterval(() => {
-      fetch("/api/auth/me").catch(() => {});
+      fetch("/api/auth/refresh", { method: "POST" }).catch(() => {});
     }, 5 * 60 * 1000); // every 5 mins
     return () => clearInterval(refreshToken);
   }, []);
