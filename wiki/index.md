@@ -28,6 +28,7 @@ Projects
 - [wiki/projects/2026-05-22-ricr-queue-workers.md](projects/2026-05-22-ricr-queue-workers.md) - BullMQ workers for RICR ingest/classify/draft/review dispatch with bug fixes and scheduled send worker.
 - [wiki/projects/2026-05-22-operator-dashboard-phase1.md](projects/2026-05-22-operator-dashboard-phase1.md) - Operator dashboard Phase 1 (auth, queue list, approve/reject).
 - [wiki/projects/2026-05-22-operator-dashboard-phase2.md](projects/2026-05-22-operator-dashboard-phase2.md) - Operator dashboard Phase 2 (settings, admin, real-time, responsive mobile, markdown editor, e2e, error boundaries).
+- [wiki/projects/2026-05-23-dashboard-phase1-foundation.md](projects/2026-05-23-dashboard-phase1-foundation.md) - Dashboard Phase 1 — Design Foundation.
 
 Ingest records
 - [wiki/ingest/2026-05-20-llm-wiki-idea.md](ingest/2026-05-20-llm-wiki-idea.md) - First ingest example and actions taken.

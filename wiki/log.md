@@ -69,3 +69,9 @@
 - Enriched review page SWR config with 3-second polling, cache busting on submission, and tabbed Markdown previewing.
 - Addressed mobile usability via hamburger layouts, horizontal-scrolling queues, and 44px minimum touch targets.
 - Introduced LoadingSpinner, ErrorState boundaries, and built a fetch-only e2e-dashboard script.
+
+## [2026-05-23] phase | Dashboard Phase 1 — Design Foundation
+- Configured Shadcn UI, Krionics brand colors, and Next.js fonts (Playfair Display, Inter).
+- Rebuilt layout shell with Sidebar, Topbar, and AuthShell.
+- Redesigned operator login page.
+- Implemented RBAC middleware and SessionManager.
