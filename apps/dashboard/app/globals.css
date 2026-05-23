@@ -1,26 +1,92 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* Design tokens moved to :root block */
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #F5EFE0;
+  --foreground: #1A1A1A;
+  --card: #FFFFFF;
+  --card-foreground: #1A1A1A;
+  --popover: #FFFFFF;
+  --popover-foreground: #1A1A1A;
+  --primary: #C4521C;
+  --primary-foreground: #FFFFFF;
+  --secondary: #E5DDD0;
+  --secondary-foreground: #1A1A1A;
+  --muted: #E5DDD0;
+  --muted-foreground: #666666;
+  --accent: #E5DDD0;
+  --accent-foreground: #1A1A1A;
+  --destructive: #ff4d4f;
+  --destructive-foreground: #ffffff;
+  --border: #E5DDD0;
+  --input: #E5DDD0;
+  --ring: #C4521C;
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --radius: 0.5rem;
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #1A1A1A;
+  --sidebar-primary: #C4521C;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #E5DDD0;
+  --sidebar-accent-foreground: #1A1A1A;
+  --sidebar-border: #E5DDD0;
+  --sidebar-ring: #C4521C;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+.dark {
+  --background: #1A1A1A;
+  --foreground: #F5EFE0;
+  --card: #2A2A2A;
+  --card-foreground: #F5EFE0;
+  --popover: #2A2A2A;
+  --popover-foreground: #F5EFE0;
+  --primary: #C4521C;
+  --primary-foreground: #FFFFFF;
+  --secondary: #333333;
+  --secondary-foreground: #F5EFE0;
+  --muted: #333333;
+  --muted-foreground: #AAAAAA;
+  --accent: #333333;
+  --accent-foreground: #F5EFE0;
+  --destructive: #ff4d4f;
+  --destructive-foreground: #ffffff;
+  --border: #333333;
+  --input: #333333;
+  --ring: #C4521C;
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: #1A1A1A;
+  --sidebar-foreground: #F5EFE0;
+  --sidebar-primary: #C4521C;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #333333;
+  --sidebar-accent-foreground: #F5EFE0;
+  --sidebar-border: #333333;
+  --sidebar-ring: #C4521C;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * {
+    border-color: var(--border);
   }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+  }
+  html {
+    font-family: var(--font-sans);
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+  }
 }

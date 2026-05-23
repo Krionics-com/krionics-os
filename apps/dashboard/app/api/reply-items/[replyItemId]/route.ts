@@ -127,7 +127,7 @@ export async function GET(
       ? {
           id: row.classification_id,
           intent: row.intent,
-          confidence: row.confidence,
+          confidence: row.confidence !== null ? Number(row.confidence) : null,
           sentiment: row.sentiment,
           urgency: row.urgency,
           key_signals: row.key_signals ?? [],
