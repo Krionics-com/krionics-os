@@ -63,8 +63,8 @@ export function ActivityFeed() {
 
   return (
     <div className="space-y-1 max-h-[500px] overflow-y-auto pr-2">
-      {data.data.map((event) => (
-        <div key={event.id} className="flex gap-4 p-3 rounded-lg hover:bg-muted/50 transition-colors border-l-2 border-transparent hover:border-primary">
+      {data.data.map((event, idx) => (
+        <div key={`${event.id}-${event.created_at}-${idx}`} className="flex gap-4 p-3 rounded-lg hover:bg-muted/50 transition-colors border-l-2 border-transparent hover:border-primary">
           <div className="mt-0.5 bg-background p-1.5 rounded-full border border-border shadow-xs">
             {iconMap[event.type] || <Zap className="h-4 w-4 text-gray-500" />}
           </div>
