@@ -373,22 +373,34 @@ async function main() {
   console.log(`✓  Client:    TechFlow Solutions  (${client.id})`);
 
   // ── 2. Campaign ────────────────────────────────────────────
-  const [campaign] = await sql`
-    INSERT INTO campaigns (
-      client_id, name, status, instantly_campaign_id,
-      total_leads, emails_sent, replies_received
-    )
-    VALUES (
-      ${client.id},
-      'Q2 SaaS Decision-Makers 2026',
-      'active',
-      'demo-campaign-q2-2026',
-      6, 6, 6
-    )
-    ON CONFLICT (instantly_campaign_id) DO UPDATE SET
-      name = EXCLUDED.name
-    RETURNING id
+  let campaign: { id: string };
+  const [existingCampaign] = await sql<{ id: string }[]>`
+    SELECT id FROM campaigns WHERE instantly_campaign_id = 'demo-campaign-q2-2026' LIMIT 1
   `;
+  if (existingCampaign) {
+    campaign = existingCampaign;
+    await sql`
+      UPDATE campaigns
+      SET name = 'Q2 SaaS Decision-Makers 2026', status = 'active'
+      WHERE id = ${campaign.id}
+    `;
+  } else {
+    const [newCampaign] = await sql<{ id: string }[]>`
+      INSERT INTO campaigns (
+        client_id, name, status, instantly_campaign_id,
+        total_leads, emails_sent, replies_received
+      )
+      VALUES (
+        ${client.id},
+        'Q2 SaaS Decision-Makers 2026',
+        'active',
+        'demo-campaign-q2-2026',
+        6, 6, 6
+      )
+      RETURNING id
+    `;
+    campaign = newCampaign;
+  }
   console.log(`✓  Campaign:  Q2 SaaS Decision-Makers 2026  (${campaign.id})\n`);
 
   // ── 3–6. One pass per scenario ────────────────────────────
@@ -556,8 +568,8 @@ async function main() {
     // Suppression list entry for UNSUBSCRIBE
     if (s.classification.intent === "UNSUBSCRIBE") {
       await sql`
-        INSERT INTO suppression_list (email, client_id, reason, reply_item_id)
-        VALUES (${s.lead.email}, ${client.id}, 'unsubscribe', ${replyItem.id})
+        INSERT INTO suppression_list (email, client_id, reason, reply_item_id, suppressed_by)
+        VALUES (${s.lead.email}, ${client.id}, 'UNSUBSCRIBE', ${replyItem.id}, 'system')
         ON CONFLICT (email) DO NOTHING
       `;
     }
