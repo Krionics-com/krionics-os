@@ -20,7 +20,8 @@ import {
   Mail,
   Globe,
   Bell,
-  ClipboardList
+  ClipboardList,
+  PhoneCall
 } from "lucide-react";
 import useSWR from "swr";
 
@@ -38,6 +39,7 @@ const navigation = [
   { name: "AI Analytics", href: "/dashboard/ai/analytics", icon: BarChart2 },
   { name: "Analytics", href: "/dashboard/analytics/operations", icon: LineChart },
   { name: "Alerts", href: "/dashboard/alerts", icon: Bell },
+  { name: "Voice Calls", href: "/dashboard/voice", icon: PhoneCall },
   { name: "Audit Log", href: "/dashboard/audit", icon: ClipboardList },
   { name: "Inboxes", href: "/dashboard/infra/inboxes", icon: Mail },
   { name: "Domains", href: "/dashboard/infra/domains", icon: Globe },

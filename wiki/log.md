@@ -174,3 +174,12 @@
 - Added instant client-side CSV downloads feature matching current active filters context.
 - Added direct sidebar navigation option styled with `ClipboardList` icon.
 - Confirmed error-free Next.js production build compilation (Exit code 0).
+
+## [2026-05-23] project | Phase 12 — Voice Agents Call Monitoring
+- Applied database migration recreating `voice_calls` and `meetings` schemas with compound indexing and 8 extensive voice call transcripts seed entries.
+- Created live Outbound/Inbound call monitoring board (`/dashboard/voice`) featuring 4 KPI overview cards, enums filters, search selectors, relative times, and 10s auto-refresh polling.
+- Developed Call Detail analysis view (`/dashboard/voice/[callId]`) with 3-section layout including scrollable color-coded message lists, terracotta-tinted speech bubbles, and keyword search highlight.
+- Built interactive Mock Audio player UI with dynamic timeline time counters and active play progress scrubbers.
+- Implemented overall sentiments score metrics, turn-by-turn sentiment mini-walk sparklines, auto post-call summaries, and escalation reasoning.
+- Added direct PhoneCall icon navigation linked in the dashboard sidebar menu.
+- Verified error-free compilation of production monorepo Next.js bundle (Exit code 0).

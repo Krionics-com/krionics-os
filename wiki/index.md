@@ -39,6 +39,7 @@ Projects
 - [wiki/projects/2026-05-23-dashboard-phase9-analytics.md](projects/2026-05-23-dashboard-phase9-analytics.md) - Dashboard Phase 9 — Analytics & Reporting.
 - [wiki/projects/2026-05-23-dashboard-phase10-alerts.md](projects/2026-05-23-dashboard-phase10-alerts.md) - Dashboard Phase 10 — Alerts Center & Rules Configurations.
 - [wiki/projects/2026-05-23-dashboard-phase11-audit.md](projects/2026-05-23-dashboard-phase11-audit.md) - Dashboard Phase 11 — Immutable Audit Logs.
+- [wiki/projects/2026-05-23-dashboard-phase12-voice-agents.md](projects/2026-05-23-dashboard-phase12-voice-agents.md) - Dashboard Phase 12 — Voice Agents Call Monitoring.
 
 Ingest records
 - [wiki/ingest/2026-05-20-llm-wiki-idea.md](ingest/2026-05-20-llm-wiki-idea.md) - First ingest example and actions taken.
