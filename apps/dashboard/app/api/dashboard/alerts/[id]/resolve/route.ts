@@ -1,4 +1,3 @@
-import { use } from "react";
 import { NextResponse, type NextRequest } from "next/server";
 import { sql } from "@/lib/db";
 import { getTokenFromRequest, verifyToken } from "@/lib/auth";
@@ -18,7 +17,7 @@ export async function POST(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { id } = use(params);
+  const { id } = await params;
 
   try {
     const [updated] = await sql<any[]>`

@@ -75,14 +75,8 @@ export async function POST(
       WHERE id = ${replyItem.id}
     `;
 
-    // Audit log
-    await tx`
-      INSERT INTO audit_log (client_id, actor_type, actor_id, action, entity_type, entity_id, trace_id)
-      VALUES (${replyItem.client_id}, 'operator', ${operator.sub}, 'APPROVE_DRAFT', 'reply_item', ${replyItem.id}, ${replyItem.trace_id})
-    `;
   });
 
-  // Call the new Phase 11 recordAudit middleware logger
   await recordAudit({
     operator_id: operator.sub,
     action: "approved",

@@ -18,7 +18,7 @@ async function requireAdmin(req: NextRequest) {
 
   try {
     const operator = await verifyToken(token);
-    if (operator.role !== "admin") {
+    if (operator.role !== "admin" && operator.role !== "super_admin") {
       return { error: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
     }
 

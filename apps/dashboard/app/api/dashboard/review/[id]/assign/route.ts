@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { sql } from "@/lib/db";
 import { getTokenFromRequest, verifyToken } from "@/lib/auth";
+import { recordAudit } from "@/lib/audit";
 
 export async function POST(
   req: NextRequest,
@@ -65,11 +66,15 @@ export async function POST(
     WHERE id = ${id}
   `;
 
-  // Audit log
-  await sql`
-    INSERT INTO audit_log (client_id, actor_type, actor_id, action, entity_type, entity_id, trace_id)
-    VALUES (${replyItem.client_id}, 'operator', ${operator.sub}, 'ASSIGN_OPERATOR', 'reply_item', ${replyItem.id}, ${replyItem.trace_id})
-  `;
+  await recordAudit({
+    operator_id: operator.sub,
+    action: "assigned",
+    resource_type: "reply",
+    resource_id: replyItem.id,
+    summary: `Assigned reply item ${replyItem.id} to operator ${targetOperatorId ?? "unassigned"}`,
+    before_value: {},
+    after_value: { assigned_to_operator_id: targetOperatorId }
+  });
 
   return NextResponse.json({ success: true });
 }

@@ -19,17 +19,17 @@ export async function GET(req: NextRequest) {
   try {
     // 1. Fetch real DB aggregates
     const dbOperators = await sql<any[]>`
-      SELECT 
+      SELECT
         o.id,
         o.name,
         o.email,
-        COUNT(r.id) FILTER (WHERE r.action_taken IN ('APPROVE', 'EDIT_AND_APPROVE'))::int as approved_count,
-        COUNT(r.id) FILTER (WHERE r.action_taken = 'REJECT')::int as rejected_count,
-        AVG(EXTRACT(EPOCH FROM (r.action_at - r.created_at)) / 3600)::float as avg_turnaround_hours,
-        COUNT(r.id) FILTER (WHERE r.action_at <= r.created_at + INTERVAL '4 hours')::int as within_sla_count,
+        COUNT(r.id) FILTER (WHERE r.status IN ('APPROVED'))::int as approved_count,
+        COUNT(r.id) FILTER (WHERE r.status = 'REJECTED')::int as rejected_count,
+        AVG(EXTRACT(EPOCH FROM (r.updated_at - r.created_at)) / 3600)::float as avg_turnaround_hours,
+        COUNT(r.id) FILTER (WHERE r.updated_at <= r.created_at + INTERVAL '4 hours')::int as within_sla_count,
         COUNT(r.id)::int as total_reviews
       FROM operators o
-      LEFT JOIN review_items r ON r.action_by = o.id
+      LEFT JOIN reply_items r ON r.assigned_to_operator_id = o.id
       WHERE o.is_active = TRUE
       GROUP BY o.id, o.name, o.email
     `;

@@ -34,12 +34,10 @@ export async function GET(req: NextRequest) {
   }
 
   return NextResponse.json({
-    operator: {
-      id: row.id,
-      email: row.email,
-      name: row.name,
-      role: row.role,
-      client_access: row.client_access
-    }
+    id: row.id,
+    email: row.email,
+    name: row.name,
+    role: row.role,
+    client_access: row.client_access
   });
 }

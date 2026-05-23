@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, Fragment } from "react";
 import ReactDOM from "react-dom";
 import { useRouter } from "next/navigation";
 import {
-  Search, FileText, ArrowRight, CornerDownLeft, Command,
+  Search, FileText, ArrowRight, CornerDownLeft, Command, Loader2,
   Building, Target, User, MessageSquare, ClipboardList,
   PhoneCall, Sliders, Zap, Bell, Sparkles, ScrollText,
   BarChart2, LineChart, Activity, AlertTriangle, Mail, Globe, Users, Settings
@@ -230,7 +230,7 @@ export default function CommandPalette() {
             placeholder="Search clients, campaigns, leads, replies... (use '>' for actions)"
             className="flex-1 h-full bg-transparent border-0 outline-none text-sm placeholder-muted-foreground focus:ring-0"
           />
-          {isLoading && <Search className="h-4 w-4 text-primary animate-spin shrink-0" />}
+          {isLoading && <Loader2 className="h-4 w-4 text-primary animate-spin shrink-0" />}
           <div className="flex items-center gap-1 shrink-0 bg-muted/60 px-1.5 py-0.5 rounded border text-[9px] font-bold font-mono">
             <Command className="h-2.5 w-2.5" />
             <span>K</span>
