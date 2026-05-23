@@ -10,8 +10,11 @@ import {
   Building2,
   Activity,
   AlertTriangle,
-  Settings,
   Users,
+  Settings,
+  Sparkles,
+  ScrollText,
+  BarChart2,
   UserCircle
 } from "lucide-react";
 import useSWR from "swr";
@@ -25,6 +28,9 @@ const navigation = [
   { name: "Clients", href: "/dashboard/clients", icon: Building2 },
   { name: "Queues", href: "/dashboard/queues", icon: Activity },
   { name: "DLQ", href: "/dashboard/dlq", icon: AlertTriangle },
+  { name: "AI Prompts", href: "/dashboard/ai/prompts", icon: Sparkles },
+  { name: "AI Logs", href: "/dashboard/ai/logs", icon: ScrollText },
+  { name: "AI Analytics", href: "/dashboard/ai/analytics", icon: BarChart2 },
   { name: "Operators", href: "/dashboard/admin", icon: Users, adminOnly: true },
   { name: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
