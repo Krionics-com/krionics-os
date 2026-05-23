@@ -224,7 +224,7 @@ export default function AuditLogPage() {
                 className="h-8.5 w-full rounded-lg border border-input bg-transparent px-2.5 text-xs focus:ring-1 focus:ring-primary"
               >
                 <option value="">All Operators</option>
-                {operatorsData?.operators?.map((op: any) => (
+                {operatorsData?.data?.map((op: any) => (
                   <option key={op.id} value={op.id}>{op.name}</option>
                 ))}
               </select>
