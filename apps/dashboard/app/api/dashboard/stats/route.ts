@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { sql } from "@/lib/db";
 import { getTokenFromRequest, verifyToken } from "@/lib/auth";
+import { getQueue, QUEUE_NAMES } from "@/lib/bull-redis";
 
 export async function GET(req: NextRequest) {
   const token = getTokenFromRequest(req);
@@ -72,10 +73,29 @@ export async function GET(req: NextRequest) {
       WHERE status = 'PENDING_REVIEW' ${clientFilter}
     `;
 
-    // Mocked stats for external integrations
-    const queue_health = 12; // Total depth
-    const ai_cost = 42.50; // Cost today
-    const failure_rate = 0.8; // Percentage
+    // Real queue health from BullMQ
+    let queue_health = 0;
+    let totalFailed = 0;
+    let totalAll = 0;
+    try {
+      for (const qName of QUEUE_NAMES) {
+        const q = getQueue(qName);
+        const counts = await q.getJobCounts("waiting", "active", "failed");
+        queue_health += counts.waiting ?? 0;
+        totalFailed += counts.failed ?? 0;
+        totalAll += (counts.waiting ?? 0) + (counts.active ?? 0) + (counts.failed ?? 0);
+      }
+    } catch {
+      // Redis may be unavailable — fall back to 0
+    }
+
+    // TODO: Replace with real AI usage API when available
+    const ai_cost = 42.50;
+
+    // Real failure rate: (failed / total) * 100, rounded to 1 decimal
+    const failure_rate = totalAll > 0
+      ? Math.round((totalFailed / totalAll) * 1000) / 10
+      : 0;
 
     return NextResponse.json({
       pending: pending?.count ?? 0,

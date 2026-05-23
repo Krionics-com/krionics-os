@@ -104,3 +104,14 @@
 - Merged `feature/dashboard-phase3-global-ops-dashboard` into `main`.
 - All KPI cards, activity feed, and system health bar functional.
 - Confirmed UI renders correctly and no TypeScript errors.
+
+## [2026-05-23] project | Phase 4 — queue monitoring and DLQ inspector built
+- Created BullMQ integration library (`apps/dashboard/lib/bull-redis.ts`) with module-level queue caching.
+- Built Queue Monitor page (`/dashboard/queues`) with status chips, admin actions (pause/resume/retry/flush).
+- Built Queue Detail page (`/dashboard/queues/[name]`) with Recharts depth chart and job lists.
+- Built DLQ Inspector page (`/dashboard/dlq`) with search, filters, pagination, and bulk actions.
+- Built DLQ Job Detail page (`/dashboard/dlq/[jobId]`) with payload viewer, stack trace, and Slack escalation.
+- Created 10 API endpoints for queue and DLQ operations.
+- Replaced Phase 3 hardcoded mocks: `queue_health` and `failure_rate` now use real BullMQ data.
+- Added `bullmq`, `ioredis`, `recharts` to dashboard dependencies.
+- Updated sidebar with Queues and DLQ navigation items.
