@@ -62,8 +62,7 @@ export async function GET(req: NextRequest) {
     const [campaigns] = await sql<{ count: number }[]>`
       SELECT COUNT(*)::int as count 
       FROM campaigns
-      WHERE status = 'ACTIVE'
-      ${operator.client_access && operator.client_access.length > 0 ? sql`AND client_id = ANY(${operator.client_access})` : sql``}
+      WHERE status = 'active' ${clientFilter}
     `;
 
     // Avg SLA Remaining (hours)

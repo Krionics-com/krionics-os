@@ -99,3 +99,8 @@
 
 ## [2026-05-23] fix | Dashboard Phase 3 — Fix lead name in activity feed
 - Fixed NULL lead names by using first_name + last_name concat instead of l.name
+
+## [2026-05-23] merge | Dashboard Phase 3 — merged to main
+- Merged `feature/dashboard-phase3-global-ops-dashboard` into `main`.
+- All KPI cards, activity feed, and system health bar functional.
+- Confirmed UI renders correctly and no TypeScript errors.
