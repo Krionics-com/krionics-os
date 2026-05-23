@@ -6,6 +6,8 @@ import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
   Inbox,
+  Activity,
+  AlertTriangle,
   Settings,
   Users,
   UserCircle
@@ -17,6 +19,8 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Review Queue", href: "/dashboard/review", icon: Inbox },
+  { name: "Queues", href: "/dashboard/queues", icon: Activity },
+  { name: "DLQ", href: "/dashboard/dlq", icon: AlertTriangle },
   { name: "Operators", href: "/dashboard/admin", icon: Users, adminOnly: true },
   { name: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
