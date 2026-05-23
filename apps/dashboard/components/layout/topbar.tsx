@@ -33,6 +33,15 @@ export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
         </div>
       </div>
       <div className="flex items-center gap-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Search"
+          className="text-foreground"
+          onClick={() => window.dispatchEvent(new CustomEvent("toggle-command-palette"))}
+        >
+          <Search className="h-5 w-5" />
+        </Button>
         <Button variant="ghost" size="icon" aria-label="Alerts" className="text-foreground">
           <Bell className="h-5 w-5" />
         </Button>

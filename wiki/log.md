@@ -192,3 +192,12 @@
 - Embedded deep configurations merging inside `PATCH /api/dashboard/settings/config` route, generating corresponding Phase 11 immutable audit logs tracking changes.
 - Added "Features" and "Configuration" sub-links to the layout Sidebar navigation with `Zap` and `Sliders` icons.
 - Verified error-free Next.js compilation (Exit code 0).
+
+## [2026-05-23] project | Phase 14 — Command Palette & Global Search
+- Developed high-performance search API endpoint `/api/search` using optimized PG `ILIKE` group lookups capped to a max of 5 hits per category.
+- Created premium client-side Command Palette modal (`components/command-palette.tsx`) rendered at body-level using React portals.
+- Configured keyboard listeners mapping `Cmd+K` / `Ctrl+K` and Topbar Search button clicks to display/dismiss search overlays.
+- Built-in fully integrated Arrow Keys navigation and highlights matching query text utilizing bold primary color styling.
+- Enabled syntax actions matching starting `>` inputs suggesting dynamic campaigns, client profiles, and reviews shortcuts.
+- Fixed table body unique React keys rendering warnings present on the mutable System Audit logs boards.
+- Verified error-free Next.js monorepo production compilation (Exit code 0).

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, Fragment } from "react";
 import useSWR from "swr";
 import {
   ClipboardList, RefreshCw, Search, Download, Calendar,
@@ -338,10 +338,9 @@ export default function AuditLogPage() {
                     const truncatedId = item.resource_id ? `${item.resource_id.slice(0, 8)}...` : "—";
                     
                     return (
-                      <>
+                      <Fragment key={item.id}>
                         {/* Summary Row */}
                         <TableRow
-                          key={item.id}
                           className={cn(
                             "cursor-pointer hover:bg-muted/10",
                             isExpanded && "bg-muted/30"
@@ -416,7 +415,7 @@ export default function AuditLogPage() {
                             </TableCell>
                           </TableRow>
                         )}
-                      </>
+                      </Fragment>
                     );
                   })}
                 </TableBody>

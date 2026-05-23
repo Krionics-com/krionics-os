@@ -41,6 +41,7 @@ Projects
 - [wiki/projects/2026-05-23-dashboard-phase11-audit.md](projects/2026-05-23-dashboard-phase11-audit.md) - Dashboard Phase 11 — Immutable Audit Logs.
 - [wiki/projects/2026-05-23-dashboard-phase12-voice-agents.md](projects/2026-05-23-dashboard-phase12-voice-agents.md) - Dashboard Phase 12 — Voice Agents Call Monitoring.
 - [wiki/projects/2026-05-23-dashboard-phase13-admin-config.md](projects/2026-05-23-dashboard-phase13-admin-config.md) - Dashboard Phase 13 — Global Configurations & Feature Flags.
+- [wiki/projects/2026-05-23-dashboard-phase14-search.md](projects/2026-05-23-dashboard-phase14-search.md) - Dashboard Phase 14 — Command Palette & Global Search.
 
 Ingest records
 - [wiki/ingest/2026-05-20-llm-wiki-idea.md](ingest/2026-05-20-llm-wiki-idea.md) - First ingest example and actions taken.
