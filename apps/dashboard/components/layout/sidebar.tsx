@@ -17,7 +17,8 @@ import {
   BarChart2,
   UserCircle,
   Mail,
-  Globe
+  Globe,
+  Bell
 } from "lucide-react";
 import useSWR from "swr";
 
@@ -34,6 +35,7 @@ const navigation = [
   { name: "AI Logs", href: "/dashboard/ai/logs", icon: ScrollText },
   { name: "AI Analytics", href: "/dashboard/ai/analytics", icon: BarChart2 },
   { name: "Analytics", href: "/dashboard/analytics/operations", icon: BarChart2 },
+  { name: "Alerts", href: "/dashboard/alerts", icon: Bell },
   { name: "Inboxes", href: "/dashboard/infra/inboxes", icon: Mail },
   { name: "Domains", href: "/dashboard/infra/domains", icon: Globe },
   { name: "Operators", href: "/dashboard/admin", icon: Users, adminOnly: true },
@@ -47,10 +49,18 @@ export function Sidebar({ isOpen = true, onClose }: { isOpen?: boolean; onClose?
     refreshInterval: 3000,
     revalidateOnFocus: true
   });
+
+  const { data: alertsData } = useSWR("/api/dashboard/alerts", fetcher, {
+    refreshInterval: 10000,
+    revalidateOnFocus: true
+  });
   
   const { data: user } = useSWR("/api/auth/me", fetcher);
 
   const pendingCount = queueData?.total ?? 0;
+  const alertsCount = alertsData?.alerts
+    ? alertsData.alerts.filter((a: any) => a.status === "new" && (a.severity === "critical" || a.severity === "warning")).length
+    : 0;
   const isAdmin = user?.role === "admin" || user?.role === "super_admin";
 
   return (
@@ -102,6 +112,13 @@ export function Sidebar({ isOpen = true, onClose }: { isOpen?: boolean; onClose?
                   )}
                 >
                   {pendingCount}
+                </span>
+              )}
+              {item.name === "Alerts" && alertsCount > 0 && (
+                <span
+                  className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-extrabold bg-rose-500 text-white animate-pulse"
+                >
+                  {alertsCount}
                 </span>
               )}
             </Link>

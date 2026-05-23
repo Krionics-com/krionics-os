@@ -155,3 +155,12 @@
 - Configured 3 RESTful APIs managing operator productivity leaderboards, campaign trend ratios, and 7-day quality metrics walks.
 - Updated Sidebar menu linking "Analytics" directly to `/dashboard/analytics/operations` with the `BarChart2` icon.
 - Verified NextJS monorepo production build with zero compiler warnings or type check errors.
+
+## [2026-05-23] project | Phase 10 — Alerts Center & Configurations
+- Applied SQL migration creating `alerts` and `alert_rules` tables with custom enums, compound indexing, default seeder rules, and varied mock incident items.
+- Built Alert Center board (`/dashboard/alerts`) providing automatic SWR 10s refreshing, custom filters (by severity, status, incident type), and relative time format helpers.
+- Implemented Right-panel Slide-over sheet displaying suggested playbook resolutions and detailed state change timelines with active operators trigger points.
+- Built Alert Settings layout (`/dashboard/settings/alerts`) featuring optimistic form updates, slider toggles, threshold values, and multi-destination checkboxes.
+- Configured 5 backend routing endpoints resolving alerts list querying, database status acknowledgments/resolutions, and custom routing destinations upserts.
+- Integrated `Bell` navigation icon with live red animate-pulse count badge representing unacknowledged critical/warning incidents.
+- Confirmed full production NextJS monorepo compilation success with zero TypeScript errors.
