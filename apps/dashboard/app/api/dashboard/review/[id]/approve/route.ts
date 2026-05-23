@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { sql } from "@/lib/db";
 import { getTokenFromRequest, verifyToken } from "@/lib/auth";
+import { recordAudit } from "@/lib/audit";
 
 export async function POST(
   req: NextRequest,
@@ -79,6 +80,17 @@ export async function POST(
       INSERT INTO audit_log (client_id, actor_type, actor_id, action, entity_type, entity_id, trace_id)
       VALUES (${replyItem.client_id}, 'operator', ${operator.sub}, 'APPROVE_DRAFT', 'reply_item', ${replyItem.id}, ${replyItem.trace_id})
     `;
+  });
+
+  // Call the new Phase 11 recordAudit middleware logger
+  await recordAudit({
+    operator_id: operator.sub,
+    action: "approved",
+    resource_type: "reply",
+    resource_id: replyItem.id,
+    summary: `Approved draft reply for reply item ${replyItem.id}`,
+    before_value: { status: "PENDING_REVIEW" },
+    after_value: { status: "APPROVED", subject, body_text }
   });
 
   return NextResponse.json({ success: true });

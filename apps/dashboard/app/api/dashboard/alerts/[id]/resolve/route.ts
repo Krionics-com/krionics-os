@@ -2,6 +2,7 @@ import { use } from "react";
 import { NextResponse, type NextRequest } from "next/server";
 import { sql } from "@/lib/db";
 import { getTokenFromRequest, verifyToken } from "@/lib/auth";
+import { recordAudit } from "@/lib/audit";
 
 export async function POST(
   req: NextRequest,
@@ -10,8 +11,9 @@ export async function POST(
   const token = getTokenFromRequest(req);
   if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  let operator;
   try {
-    await verifyToken(token);
+    operator = await verifyToken(token);
   } catch {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -31,6 +33,16 @@ export async function POST(
     if (!updated) {
       return NextResponse.json({ error: "Alert not found" }, { status: 404 });
     }
+
+    await recordAudit({
+      operator_id: operator.sub,
+      action: "resolved",
+      resource_type: "alert",
+      resource_id: id,
+      summary: `Resolved alert: ${updated.title}`,
+      before_value: { status: "acknowledged" },
+      after_value: { status: "resolved" }
+    });
 
     return NextResponse.json({ success: true, alert: updated });
   } catch (err: any) {

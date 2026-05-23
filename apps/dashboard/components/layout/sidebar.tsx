@@ -19,7 +19,8 @@ import {
   UserCircle,
   Mail,
   Globe,
-  Bell
+  Bell,
+  ClipboardList
 } from "lucide-react";
 import useSWR from "swr";
 
@@ -37,6 +38,7 @@ const navigation = [
   { name: "AI Analytics", href: "/dashboard/ai/analytics", icon: BarChart2 },
   { name: "Analytics", href: "/dashboard/analytics/operations", icon: LineChart },
   { name: "Alerts", href: "/dashboard/alerts", icon: Bell },
+  { name: "Audit Log", href: "/dashboard/audit", icon: ClipboardList },
   { name: "Inboxes", href: "/dashboard/infra/inboxes", icon: Mail },
   { name: "Domains", href: "/dashboard/infra/domains", icon: Globe },
   { name: "Operators", href: "/dashboard/admin", icon: Users, adminOnly: true },

@@ -164,3 +164,13 @@
 - Configured 5 backend routing endpoints resolving alerts list querying, database status acknowledgments/resolutions, and custom routing destinations upserts.
 - Integrated `Bell` navigation icon with live red animate-pulse count badge representing unacknowledged critical/warning incidents.
 - Confirmed full production NextJS monorepo compilation success with zero TypeScript errors.
+
+## [2026-05-23] project | Phase 11 — Immutable Audit Logs
+- Applied database migration creating `audit_logs` table with compound indexes and 12 detailed mock system logs.
+- Built reusable middleware logger `recordAudit` managing thread-safe async writes for operator actions.
+- Integrated `recordAudit` into reviews approval/rejection endpoints, as well as alerts acknowledgement/resolution routes.
+- Created paginated, searchable, and filterable Audit Log Board UI (`/dashboard/audit`) supporting custom operators dropdown, type selectors, and date ranges.
+- Built expandable JSON Diff component visualizing operator state deltas in clear side-by-side color-coded blocks.
+- Added instant client-side CSV downloads feature matching current active filters context.
+- Added direct sidebar navigation option styled with `ClipboardList` icon.
+- Confirmed error-free Next.js production build compilation (Exit code 0).
