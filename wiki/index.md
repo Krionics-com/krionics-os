@@ -35,6 +35,7 @@ Projects
 - [wiki/projects/2026-05-23-dashboard-phase5-client-management.md](projects/2026-05-23-dashboard-phase5-client-management.md) - Dashboard Phase 5 — Client Management & Profiles.
 - [wiki/projects/2026-05-23-dashboard-phase6-campaign-management.md](projects/2026-05-23-dashboard-phase6-campaign-management.md) - Dashboard Phase 6 — Campaign Management.
 - [wiki/projects/2026-05-23-dashboard-phase7-ai-operations.md](projects/2026-05-23-dashboard-phase7-ai-operations.md) - Dashboard Phase 7 — AI Operations.
+- [wiki/projects/2026-05-23-dashboard-phase8-infrastructure.md](projects/2026-05-23-dashboard-phase8-infrastructure.md) - Dashboard Phase 8 — Infrastructure Health & Domain Reputation.
 
 Ingest records
 - [wiki/ingest/2026-05-20-llm-wiki-idea.md](ingest/2026-05-20-llm-wiki-idea.md) - First ingest example and actions taken.

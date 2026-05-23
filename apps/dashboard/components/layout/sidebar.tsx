@@ -15,7 +15,9 @@ import {
   Sparkles,
   ScrollText,
   BarChart2,
-  UserCircle
+  UserCircle,
+  Mail,
+  Globe
 } from "lucide-react";
 import useSWR from "swr";
 
@@ -31,6 +33,8 @@ const navigation = [
   { name: "AI Prompts", href: "/dashboard/ai/prompts", icon: Sparkles },
   { name: "AI Logs", href: "/dashboard/ai/logs", icon: ScrollText },
   { name: "AI Analytics", href: "/dashboard/ai/analytics", icon: BarChart2 },
+  { name: "Inboxes", href: "/dashboard/infra/inboxes", icon: Mail },
+  { name: "Domains", href: "/dashboard/infra/domains", icon: Globe },
   { name: "Operators", href: "/dashboard/admin", icon: Users, adminOnly: true },
   { name: "Settings", href: "/dashboard/settings", icon: Settings },
 ];

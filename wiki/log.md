@@ -138,3 +138,12 @@
 - Built AI Performance Analytics dashboard (`/dashboard/ai/analytics`) using SWR auto-polling, area spending charts, latency percentiles, and input/output token bar statistics.
 - Updated layout Sidebar to include direct route links for Prompts, Logs, and Analytics.
 - Confirmed full monorepo static build compilation success with zero TypeScript errors.
+
+## [2026-05-23] project | Phase 8 — infrastructure monitoring, inbox health, domain reputation
+- Created Inbox Monitoring directory page (`/dashboard/infra/inboxes`) displaying campaign bounds, SPF/DKIM/DMARC badges, warmup stages, and deliverability ratings.
+- Created Inbox Detail profile page (`/dashboard/infra/inboxes/[email]`) showcasing 6 KPI summary cards, a Recharts 30-day reputation LineChart, a detailed event timeline, and complete DNS record copy block segments.
+- Created Domain Sending list dashboard (`/dashboard/infra/domains`) providing DISTINCT domain extraction, inbox distributions, and aggregated ratio filters.
+- Created Domain Detail profile view (`/dashboard/infra/domains/[domain]`) highlighting domain aggregates, constituent inboxes, and quick routing hooks.
+- Configured 4 backend routing APIs managing calculated database deliverability ratios, deterministic mock trend seeds, and full domain grouping loops.
+- Integrated direct Inboxes and Domains navigation tabs into the operator layout Sidebar.
+- Confirmed successful compilation of the production monorepo build with zero type check warnings or errors.
