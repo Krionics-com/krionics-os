@@ -3,7 +3,7 @@
 -- ============================================================
 
 CREATE TABLE IF NOT EXISTS reply_policies (
-  id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  id                    UUID NOT NULL DEFAULT gen_random_uuid(),
   client_id             UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
   intent                TEXT NOT NULL,
 
