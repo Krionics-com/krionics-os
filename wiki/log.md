@@ -208,6 +208,13 @@
 - Fixed table body unique React keys rendering warnings present on the mutable System Audit logs boards.
 - Verified error-free Next.js monorepo production compilation (Exit code 0).
 
+## [2026-05-28] build | Module 1 — Seed Operational Config
+- Fixed duplicate PRIMARY KEY in reply_policies migration (id column was incorrectly declared as UUID PRIMARY KEY alongside the composite PK on client_id+intent).
+- Created migration 20260528000001 with seed_client_default_policies() PL/pgSQL function seeding 10 intent rows each for reply_policies and timing_rules per client.
+- Added trigger on_client_created_seed_policies that auto-seeds new clients on INSERT.
+- Backfill DO block seeds all existing clients.
+- Created packages/workers/src/seed-client-policies.ts TypeScript wrapper for application-level seeding.
+
 ## [2026-05-28] build | Module 0 — AI Provider Strategy Pattern
 - Extended `AIProvider` interface from 2 to 6 methods covering all AI invocation points (signal extraction, sequence generation, classification, draft generation, objection intelligence, analytics intelligence).
 - Added 4 new Zod schema pairs to `@krionics/schema` for the 4 new methods.
