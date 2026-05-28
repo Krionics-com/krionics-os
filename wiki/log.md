@@ -240,6 +240,13 @@
 - Wired reply_received (ingest), reply_classified (classify), draft_generated (draft), review_queued and auto_send_queued (review-dispatch), auto_reply_sent and send_failed (send) across all 5 RICR workers.
 - Extended send.ts rawReply query to JOIN reply_items for client_id/lead_id needed for event metadata.
 
+## [2026-05-28] build | Module 8 — Analytics Intelligence
+- Created migration 20260528000002 with analytics_snapshots table (reply metrics, intent_breakdown JSONB, top_objections, AI analysis columns with unique index on client+period+granularity).
+- Created packages/workers/src/workers/analytics-aggregator.ts: aggregates reply_items + events per client into analytics_snapshots, computes reply/positive/booking rates, emits analytics_snapshot_created event, enqueues intelligence analysis for weekly snapshots.
+- Created packages/workers/src/workers/analytics-intelligence.ts (AI invocation point 6): calls provider.analyzePerformance(), writes ai_summary, ai_key_insights, ai_recommended_actions, ai_sequence_suggestions, ai_health_score back to snapshot, emits analytics_ai_analyzed event.
+- Wired both workers into packages/workers/src/index.ts; added BullMQ repeatable job running analytics-aggregate every 15 minutes.
+- Created wiki/ingest/2026-05-28-module-8-analytics-intelligence.md.
+
 ## [2026-05-28] build | Module 1 — Seed Operational Config
 - Fixed duplicate PRIMARY KEY in reply_policies migration (id column was incorrectly declared as UUID PRIMARY KEY alongside the composite PK on client_id+intent).
 - Created migration 20260528000001 with seed_client_default_policies() PL/pgSQL function seeding 10 intent rows each for reply_policies and timing_rules per client.

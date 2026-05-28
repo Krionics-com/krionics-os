@@ -1,5 +1,5 @@
 import { Worker } from "bullmq";
-import { redis, moveToDLQ } from "./queues.js";
+import { redis, moveToDLQ, analyticsAggregateQueue } from "./queues.js";
 import { createIngestWorker } from "./workers/ingest.js";
 import { createClassifyWorker } from "./workers/classify.js";
 import { createDraftWorker } from "./workers/draft.js";
@@ -10,6 +10,8 @@ import { createClayEnrichmentWorker } from "./workers/clay-enrichment.js";
 import { createSignalExtractionWorker } from "./workers/signal-extraction.js";
 import { createBookingReminderWorker } from "./workers/booking-reminder.js";
 import { createCRMSyncWorker } from "./workers/crm-sync.js";
+import { createAnalyticsAggregatorWorker } from "./workers/analytics-aggregator.js";
+import { createAnalyticsIntelligenceWorker } from "./workers/analytics-intelligence.js";
 
 type ManagedWorker = {
   name: string;
@@ -43,10 +45,21 @@ const workers: ManagedWorker[] = [
   { name: "lead:clay_enrichment", worker: createClayEnrichmentWorker() },
   { name: "lead:signal_extraction", worker: createSignalExtractionWorker() },
   { name: "meeting:booking_reminder", worker: createBookingReminderWorker() },
-  { name: "crm:sync", worker: createCRMSyncWorker() }
+  { name: "crm:sync", worker: createCRMSyncWorker() },
+  { name: "analytics:aggregator", worker: createAnalyticsAggregatorWorker() },
+  { name: "analytics:intelligence", worker: createAnalyticsIntelligenceWorker() }
 ];
 
 workers.forEach(attachDlqHandler);
+
+// Schedule analytics aggregator to run every 15 minutes (daily granularity)
+analyticsAggregateQueue.add(
+  "aggregate_daily",
+  { granularity: "daily" },
+  { repeat: { every: 15 * 60 * 1000 }, jobId: "analytics-aggregate-daily-repeat" }
+).catch((err) => {
+  console.error("[workers] Failed to schedule analytics aggregator:", err);
+});
 
 console.log("[workers] RICR workers are running.");
 
