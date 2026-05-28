@@ -208,6 +208,16 @@
 - Fixed table body unique React keys rendering warnings present on the mutable System Audit logs boards.
 - Verified error-free Next.js monorepo production compilation (Exit code 0).
 
+## [2026-05-28] build | Module 0 — AI Provider Strategy Pattern
+- Extended `AIProvider` interface from 2 to 6 methods covering all AI invocation points (signal extraction, sequence generation, classification, draft generation, objection intelligence, analytics intelligence).
+- Added 4 new Zod schema pairs to `@krionics/schema` for the 4 new methods.
+- Created `packages/ai-provider/src/prompt-builder.ts` with 6-layer composable prompt architecture and per-operation prompt factories.
+- Rewrote `ClaudeProvider` and `OpenAIProvider` to implement all 6 methods using shared call helpers and prompt-builder.
+- Fixed factory signature mismatch: `createAIProvider()` now accepts optional `{ providerOverride }` for per-client provider selection; API keys always from env vars.
+- Fixed `classify.ts` and `draft.ts` worker callsites that were passing silently-ignored params.
+- `packages/schema` and `packages/ai-provider` compile with zero TypeScript errors.
+- Created `wiki/architecture/ai-provider.md` and `wiki/ingest/2026-05-28-module-0-ai-provider-strategy.md`.
+
 ## [2026-05-23] build | Reply Orchestration System Phase 1-3
 - Phase 1: Created 10 Supabase migrations (006–015) adding 6 new tables (enriched_leads, events, lead_state_history, reply_policies, timing_rules, response_queue) and column extensions to clients, leads, raw_replies, reply_drafts.
 - Phase 2: Implemented Instantly webhook handler at `apps/dashboard/app/api/webhooks/instantly/route.ts` with HMAC-SHA256 signature verification, 202 Accepted response, and BullMQ ingestQueue enqueue.
