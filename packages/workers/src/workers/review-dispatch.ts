@@ -3,6 +3,7 @@ import { z } from "zod";
 import { sql } from "../db.js";
 import { reviewDispatchQueue, scheduledSendQueue } from "../queues.js";
 import { addMinutes, replyPriority, shouldAutoSend } from "../utils.js";
+import { emitEvent } from "../emit-event.js";
 
 const ReviewDispatchSchema = z.object({
   replyItemId: z.string().uuid(),
@@ -131,6 +132,19 @@ export function createReviewDispatchWorker(): Worker<ReviewDispatchJob> {
           WHERE id = ${payload.replyItemId}
         `;
 
+        await emitEvent({
+          clientId: replyItem.client_id,
+          leadId: replyItem.lead_id,
+          eventType: "review_queued",
+          metadata: {
+            reply_item_id: payload.replyItemId,
+            review_item_id: reviewItem.id,
+            draft_id: payload.draftId,
+            classification_id: payload.classificationId
+          },
+          traceId: payload.traceId ?? null
+        });
+
         return { status: "queued", reviewItemId: reviewItem.id };
       }
 
@@ -184,6 +198,19 @@ export function createReviewDispatchWorker(): Worker<ReviewDispatchJob> {
         SET status = 'approved', approved_at = NOW(), reviewed_at = NOW()
         WHERE id = ${payload.draftId}
       `;
+
+      await emitEvent({
+        clientId: replyItem.client_id,
+        leadId: replyItem.lead_id,
+        eventType: "auto_send_queued",
+        metadata: {
+          reply_item_id: payload.replyItemId,
+          scheduled_send_id: scheduled.id,
+          draft_id: payload.draftId,
+          classification_id: payload.classificationId
+        },
+        traceId: payload.traceId ?? null
+      });
 
       await scheduledSendQueue.add("scheduled_send", {
         scheduledSendId: scheduled.id,

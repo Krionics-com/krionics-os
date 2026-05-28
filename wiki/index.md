@@ -54,3 +54,4 @@ Ingest records
 - [wiki/ingest/2026-05-21-supabase-schema-migration.md](ingest/2026-05-21-supabase-schema-migration.md) - Ingest record for the Supabase schema migration build session.
 - [wiki/ingest/2026-05-28-module-0-ai-provider-strategy.md](ingest/2026-05-28-module-0-ai-provider-strategy.md) - Module 0: AI Provider strategy pattern — extended to 6 AI invocation points, PromptBuilder, factory fix, worker callsite fixes.
 - [wiki/ingest/2026-05-28-module-1-seed-policies.md](ingest/2026-05-28-module-1-seed-policies.md) - Module 1: Operational config seed — fixed reply_policies duplicate PK, seeder function, trigger, timing rules defaults.
+- [wiki/ingest/2026-05-28-module-2-event-emission.md](ingest/2026-05-28-module-2-event-emission.md) - Module 2: Event emission — emitEvent helper, wired into all 5 RICR workers for 7 event types.
