@@ -208,6 +208,10 @@
 - Fixed table body unique React keys rendering warnings present on the mutable System Audit logs boards.
 - Verified error-free Next.js monorepo production compilation (Exit code 0).
 
+## [2026-05-28] build | Module 6 — Cal.com Booking Webhook
+- Created /api/webhooks/calcom handler: HMAC-SHA256 verification, handles BOOKING_CREATED/RESCHEDULED/CANCELLED. On creation: upserts meeting, updates lead status, enqueues CRM sync, schedules 3 BullMQ delayed reminder jobs (24h/72h/5d before meeting).
+- Created booking-reminder worker: checks meeting not cancelled, records reminder in metadata, emits booking_reminder_triggered event.
+
 ## [2026-05-28] build | Module 5 — Clay Enrichment Workflow
 - Created Clay API client and clay-enrichment worker (async enrichment trigger).
 - Created Clay webhook handler at /api/webhooks/clay: validates signature, upserts enriched_leads, enqueues signal extraction.
