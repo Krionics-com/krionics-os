@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
           c.contract_start, c.contract_end, c.config,
           c.crm_type, c.crm_config,
           c.sales_lead_name, c.service_description, c.icp_description,
-          c.positioning_statement, c.calcom_link,
+          c.positioning_statement, c.calendly_link AS calcom_link,
           c.slack_webhook_url, c.slack_channel_id,
           c.created_at, c.updated_at,
           COUNT(DISTINCT ca.id) FILTER (WHERE ca.status = 'active')::int AS active_campaigns,
@@ -48,7 +48,7 @@ export async function GET(req: NextRequest) {
           c.contract_start, c.contract_end, c.config,
           c.crm_type, c.crm_config,
           c.sales_lead_name, c.service_description, c.icp_description,
-          c.positioning_statement, c.calcom_link,
+          c.positioning_statement, c.calendly_link AS calcom_link,
           c.slack_webhook_url, c.slack_channel_id,
           c.created_at, c.updated_at,
           COUNT(DISTINCT ca.id) FILTER (WHERE ca.status = 'active')::int AS active_campaigns,
@@ -125,7 +125,7 @@ export async function POST(req: NextRequest) {
         company_name, contact_email, contact_name, slug, timezone,
         service_type, service_description, positioning_statement, sales_lead_name,
         icp_description, mrr_usd, setup_fee_usd, contract_start, contract_end,
-        crm_type, crm_config, calcom_link, slack_webhook_url, slack_channel_id,
+        crm_type, crm_config, calendly_link, slack_webhook_url, slack_channel_id,
         automation_level, tier, config
       )
       VALUES (

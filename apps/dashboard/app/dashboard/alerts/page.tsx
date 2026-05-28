@@ -400,7 +400,7 @@ export default function AlertCenterPage() {
 
       {/* Slide-over Detail Sheet panel */}
       {selectedAlert && (
-        <div className="fixed inset-0 bg-black z-50 flex justify-end transition-all duration-300">
+        <div className="fixed inset-0 bg-black/85 z-50 flex justify-end transition-all duration-300">
           
           {/* Backdrop Click Dismiss */}
           <div className="flex-1" onClick={() => setSelectedAlert(null)} />

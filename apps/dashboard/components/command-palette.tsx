@@ -211,7 +211,7 @@ export default function CommandPalette() {
   return ReactDOM.createPortal(
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-[10vh] px-4 overflow-hidden select-none">
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black transition-all" onClick={() => setIsOpen(false)} />
+      <div className="fixed inset-0 bg-black/85 transition-all" onClick={() => setIsOpen(false)} />
 
       {/* Main Palette Modal */}
       <div
