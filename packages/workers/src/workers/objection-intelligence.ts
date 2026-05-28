@@ -5,6 +5,7 @@ import { sql } from "../db.js";
 import { objectionIntelligenceQueue } from "../queues.js";
 import { emitEvent } from "../emit-event.js";
 import { logAIInvocation, estimateCostMicro } from "../log-ai-invocation.js";
+import { notifyEscalation } from "../notify-slack.js";
 
 const ObjectionIntelligenceJobSchema = z.object({
   replyItemId: z.string().uuid(),
@@ -145,6 +146,12 @@ export function createObjectionIntelligenceWorker(): Worker<ObjectionIntelligenc
           WHERE id = ${payload.replyItemId}::uuid
             AND status NOT IN ('SENT', 'REJECTED', 'SUPPRESSED')
         `;
+        await notifyEscalation({
+          clientId: payload.clientId,
+          replyItemId: payload.replyItemId,
+          objectionCategory: output.objection_category,
+          escalationReason: output.escalation_reason
+        });
       }
 
       return {

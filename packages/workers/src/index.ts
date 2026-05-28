@@ -1,5 +1,6 @@
 import { Worker } from "bullmq";
 import { redis, moveToDLQ, analyticsAggregateQueue } from "./queues.js";
+import { notifyDLQ } from "./notify-slack.js";
 import { createIngestWorker } from "./workers/ingest.js";
 import { createClassifyWorker } from "./workers/classify.js";
 import { createDraftWorker } from "./workers/draft.js";
@@ -30,6 +31,7 @@ function attachDlqHandler({ name, worker }: ManagedWorker): void {
     const maxAttempts = job.opts.attempts ?? 1;
     if (job.attemptsMade >= maxAttempts) {
       await moveToDLQ(name, job.name, job.data, error, job.attemptsMade);
+      await notifyDLQ(name, job.name, error, job.attemptsMade);
     }
   });
 

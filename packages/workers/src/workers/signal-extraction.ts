@@ -2,7 +2,7 @@ import { Worker } from "bullmq";
 import { z } from "zod";
 import { createAIProvider } from "@krionics/ai-provider";
 import { sql } from "../db.js";
-import { signalExtractionQueue } from "../queues.js";
+import { signalExtractionQueue, sequenceGenerationQueue } from "../queues.js";
 import { emitEvent } from "../emit-event.js";
 import { logAIInvocation, estimateCostMicro } from "../log-ai-invocation.js";
 
@@ -141,6 +141,18 @@ export function createSignalExtractionWorker(): Worker<SignalExtractionJob> {
         },
         traceId: payload.traceId ?? null
       });
+
+      // Kick off sequence generation now that signals are ready
+      await sequenceGenerationQueue.add(
+        "generate_sequence",
+        {
+          clientId: payload.clientId,
+          leadId: payload.leadId,
+          campaignId: null,
+          traceId: payload.traceId ?? null
+        },
+        { jobId: `seq-gen:${payload.clientId}:${payload.leadId}` }
+      );
 
       return {
         status: "extracted",
