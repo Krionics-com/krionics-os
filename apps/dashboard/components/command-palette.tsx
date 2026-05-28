@@ -211,13 +211,13 @@ export default function CommandPalette() {
   return ReactDOM.createPortal(
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-[10vh] px-4 overflow-hidden select-none">
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-background/80 backdrop-blur-sm transition-all" onClick={() => setIsOpen(false)} />
+      <div className="fixed inset-0 bg-black transition-all" onClick={() => setIsOpen(false)} />
 
       {/* Main Palette Modal */}
       <div
         ref={containerRef}
         onKeyDown={handleListKeyDown}
-        className="relative max-w-2xl w-full rounded-xl border border-border bg-card/90 backdrop-blur-md shadow-2xl overflow-hidden flex flex-col max-h-[60vh]"
+        className="relative max-w-2xl w-full rounded-xl border border-border bg-card shadow-2xl overflow-hidden flex flex-col max-h-[60vh]"
       >
         {/* Search header inputs */}
         <div className="flex items-center gap-3 px-4 border-b border-border/60 h-14 shrink-0">

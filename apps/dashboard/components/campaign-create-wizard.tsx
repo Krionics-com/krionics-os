@@ -176,7 +176,7 @@ export function CampaignCreateWizard({ onClose, onCreated }: Props) {
   const selectedClient = clients.find((c) => c.id === data.client_id);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black p-4">
       <div className="relative w-full max-w-2xl bg-background rounded-xl shadow-2xl border border-border flex flex-col max-h-[90vh]">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border shrink-0">

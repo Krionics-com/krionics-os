@@ -293,7 +293,7 @@ export default function AdminPage() {
       )}
 
       {createOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-xs">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black p-4">
           <div className="w-full max-w-lg rounded-xl bg-white p-6 shadow-xl animate-scale-up">
             <h2 className="text-lg font-bold text-gray-900">Create Operator</h2>
             <p className="mt-1 text-sm text-gray-500">Register a new operator with distinct permissions and credentials.</p>
