@@ -64,6 +64,77 @@ export const scheduledSendQueue = new Queue("reply-scheduled-send", {
   }
 });
 
+// ── Acquisition / enrichment ─────────────────────────────────────────────────
+
+export const apolloImportQueue = new Queue("lead-apollo-import", {
+  ...baseQueueOptions,
+  defaultJobOptions: {
+    ...baseQueueOptions.defaultJobOptions,
+    attempts: 3,
+    backoff: { type: "exponential", delay: 5000 }
+  }
+});
+
+export const clayEnrichmentQueue = new Queue("lead-clay-enrichment", {
+  ...baseQueueOptions,
+  defaultJobOptions: {
+    ...baseQueueOptions.defaultJobOptions,
+    attempts: 3,
+    backoff: { type: "exponential", delay: 10000 }
+  }
+});
+
+export const signalExtractionQueue = new Queue("lead-signal-extraction", {
+  ...baseQueueOptions,
+  defaultJobOptions: {
+    ...baseQueueOptions.defaultJobOptions,
+    attempts: 3,
+    backoff: { type: "exponential", delay: 5000 }
+  }
+});
+
+// ── CRM sync ─────────────────────────────────────────────────────────────────
+
+export const crmSyncQueue = new Queue("crm-sync", {
+  ...baseQueueOptions,
+  defaultJobOptions: {
+    ...baseQueueOptions.defaultJobOptions,
+    attempts: 5,
+    backoff: { type: "exponential", delay: 10000 }
+  }
+});
+
+// ── Analytics ────────────────────────────────────────────────────────────────
+
+export const analyticsAggregateQueue = new Queue("analytics-aggregate", {
+  ...baseQueueOptions,
+  defaultJobOptions: {
+    ...baseQueueOptions.defaultJobOptions,
+    attempts: 2,
+    backoff: { type: "fixed", delay: 30000 }
+  }
+});
+
+export const analyticsIntelligenceQueue = new Queue("analytics-intelligence", {
+  ...baseQueueOptions,
+  defaultJobOptions: {
+    ...baseQueueOptions.defaultJobOptions,
+    attempts: 2,
+    backoff: { type: "exponential", delay: 30000 }
+  }
+});
+
+// ── Booking reminders ────────────────────────────────────────────────────────
+
+export const bookingReminderQueue = new Queue("booking-reminder", {
+  ...baseQueueOptions,
+  defaultJobOptions: {
+    ...baseQueueOptions.defaultJobOptions,
+    attempts: 3,
+    backoff: { type: "exponential", delay: 5000 }
+  }
+});
+
 export const deadLetterQueue = new Queue("reply-dlq", {
   ...baseQueueOptions,
   defaultJobOptions: {

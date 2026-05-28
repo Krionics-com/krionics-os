@@ -8,6 +8,12 @@ type WorkerEnv = {
   openaiBaseUrl?: string;
   openaiModel?: string;
   instantlyApiKey?: string;
+  apolloApiKey?: string;
+  clayApiKey?: string;
+  clayWebhookSecret?: string;
+  calcomWebhookSecret?: string;
+  hubspotAccessToken?: string;
+  pipedriveApiKey?: string;
 };
 
 let cachedEnv: WorkerEnv | null = null;
@@ -39,7 +45,13 @@ export function getEnv(): WorkerEnv {
     openaiApiKey: process.env.OPENAI_API_KEY,
     openaiBaseUrl: process.env.OPENAI_BASE_URL,
     openaiModel: process.env.OPENAI_MODEL,
-    instantlyApiKey: process.env.INSTANTLY_API_KEY
+    instantlyApiKey: process.env.INSTANTLY_API_KEY,
+    apolloApiKey: process.env.APOLLO_API_KEY,
+    clayApiKey: process.env.CLAY_API_KEY,
+    clayWebhookSecret: process.env.CLAY_WEBHOOK_SECRET,
+    calcomWebhookSecret: process.env.CALCOM_WEBHOOK_SECRET,
+    hubspotAccessToken: process.env.HUBSPOT_ACCESS_TOKEN,
+    pipedriveApiKey: process.env.PIPEDRIVE_API_KEY
   };
 
   return cachedEnv;

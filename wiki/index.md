@@ -56,3 +56,4 @@ Ingest records
 - [wiki/ingest/2026-05-28-module-1-seed-policies.md](ingest/2026-05-28-module-1-seed-policies.md) - Module 1: Operational config seed — fixed reply_policies duplicate PK, seeder function, trigger, timing rules defaults.
 - [wiki/ingest/2026-05-28-module-2-event-emission.md](ingest/2026-05-28-module-2-event-emission.md) - Module 2: Event emission — emitEvent helper, wired into all 5 RICR workers for 7 event types.
 - [wiki/ingest/2026-05-28-module-3-response-scheduling.md](ingest/2026-05-28-module-3-response-scheduling.md) - Module 3: Response scheduling — calculateSendTime with randomized delay, business hours enforcement, prospect timezone support.
+- [wiki/ingest/2026-05-28-module-4-apollo-lead-acquisition.md](ingest/2026-05-28-module-4-apollo-lead-acquisition.md) - Module 4: Apollo lead acquisition — Apollo API client, import worker with upsert+dedup, dashboard trigger endpoint, 7 new queues, public exports barrel.
