@@ -240,6 +240,12 @@
 - Wired reply_received (ingest), reply_classified (classify), draft_generated (draft), review_queued and auto_send_queued (review-dispatch), auto_reply_sent and send_failed (send) across all 5 RICR workers.
 - Extended send.ts rawReply query to JOIN reply_items for client_id/lead_id needed for event metadata.
 
+## [2026-05-28] build | Modules 9–12 — AI Logging, Sequence Pipeline, Objection Intelligence, Feature Flags
+- Module 9: Created log-ai-invocation.ts helper writing to partitioned ai_invocations table; wired into classify, draft, signal-extraction, analytics-intelligence workers on both success and failure paths.
+- Module 10: 3 migrations (generated_sequences table, instantly_campaign_id column on clients, booking_reminders flag seed); instantly-outbound.ts API client; sequence-generation worker (AI invocation point 2); instantly-push worker; sequences/generate dashboard route; 2 new queues.
+- Module 11: objection-intelligence worker (AI invocation point 5) — triggered by classify for OBJECTION replies, calls provider.analyzeObjection(), enriches reply_classifications, escalates when indicated; objectionIntelligenceQueue added.
+- Module 12: config.ts with getFeatureFlag() and getGlobalConfig() backed by 60s/120s Redis cache; crm_sync flag in crm-sync, booking_reminders flag in booking-reminder, analytics flag per-client in analytics-aggregator, sending_limits config in send.
+
 ## [2026-05-28] build | Module 8 — Analytics Intelligence
 - Created migration 20260528000002 with analytics_snapshots table (reply metrics, intent_breakdown JSONB, top_objections, AI analysis columns with unique index on client+period+granularity).
 - Created packages/workers/src/workers/analytics-aggregator.ts: aggregates reply_items + events per client into analytics_snapshots, computes reply/positive/booking rates, emits analytics_snapshot_created event, enqueues intelligence analysis for weekly snapshots.

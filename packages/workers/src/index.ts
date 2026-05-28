@@ -12,6 +12,9 @@ import { createBookingReminderWorker } from "./workers/booking-reminder.js";
 import { createCRMSyncWorker } from "./workers/crm-sync.js";
 import { createAnalyticsAggregatorWorker } from "./workers/analytics-aggregator.js";
 import { createAnalyticsIntelligenceWorker } from "./workers/analytics-intelligence.js";
+import { createSequenceGenerationWorker } from "./workers/sequence-generation.js";
+import { createInstantlyPushWorker } from "./workers/instantly-push.js";
+import { createObjectionIntelligenceWorker } from "./workers/objection-intelligence.js";
 
 type ManagedWorker = {
   name: string;
@@ -47,7 +50,10 @@ const workers: ManagedWorker[] = [
   { name: "meeting:booking_reminder", worker: createBookingReminderWorker() },
   { name: "crm:sync", worker: createCRMSyncWorker() },
   { name: "analytics:aggregator", worker: createAnalyticsAggregatorWorker() },
-  { name: "analytics:intelligence", worker: createAnalyticsIntelligenceWorker() }
+  { name: "analytics:intelligence", worker: createAnalyticsIntelligenceWorker() },
+  { name: "lead:sequence_generation", worker: createSequenceGenerationWorker() },
+  { name: "lead:instantly_push", worker: createInstantlyPushWorker() },
+  { name: "reply:objection_intelligence", worker: createObjectionIntelligenceWorker() }
 ];
 
 workers.forEach(attachDlqHandler);
