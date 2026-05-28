@@ -118,7 +118,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       "service_type", "status", "tier", "automation_level",
       "mrr_usd", "setup_fee_usd", "contract_start", "contract_end",
       "crm_type", "sales_lead_name", "service_description",
-      "icp_description", "positioning_statement", "calendly_link",
+      "icp_description", "positioning_statement", "calcom_link",
       "slack_webhook_url", "slack_channel_id", "instantly_campaign_id",
     ];
 

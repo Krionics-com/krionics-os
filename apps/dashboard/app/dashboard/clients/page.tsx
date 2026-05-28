@@ -16,7 +16,7 @@ import {
   Table, TableBody, TableCell, TableHead,
   TableHeader, TableRow,
 } from "@/components/ui/table";
-import { ClientCreateModal } from "@/components/client-create-modal";
+import { ClientOnboardingWizard } from "@/components/client-onboarding-wizard";
 import { toast } from "sonner";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
@@ -131,7 +131,7 @@ export default function ClientsPage() {
 
   return (
     <>
-      <ClientCreateModal open={showCreate} onClose={() => setShowCreate(false)} />
+      <ClientOnboardingWizard open={showCreate} onClose={() => setShowCreate(false)} />
 
       {/* Confirm dialog */}
       {confirmAction && (
