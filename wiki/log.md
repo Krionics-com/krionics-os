@@ -208,6 +208,12 @@
 - Fixed table body unique React keys rendering warnings present on the mutable System Audit logs boards.
 - Verified error-free Next.js monorepo production compilation (Exit code 0).
 
+## [2026-05-28] build | Module 3 — Response Scheduling with Business Hours
+- Created packages/workers/src/scheduling.ts with calculateSendTime() that reads timing_rules, picks a random delay in [min, max], and enforces business hours using Intl.DateTimeFormat for timezone-aware boundary detection.
+- Business hours enforcement handles before-start, after-end, and weekend cases with a 7-iteration loop guard.
+- Prospect timezone takes precedence over client timezone when send_in_prospect_timezone is true.
+- Wired into review-dispatch.ts: replaced hardcoded addMinutes call with calculateSendTime, added lead timezone query, updated auto_send_queued event metadata with scheduled_at.
+
 ## [2026-05-28] build | Module 2 — Event Emission in Workers
 - Created packages/workers/src/emit-event.ts with emitEvent() helper writing to the partitioned events table. Errors are caught so emission never blocks jobs.
 - Wired reply_received (ingest), reply_classified (classify), draft_generated (draft), review_queued and auto_send_queued (review-dispatch), auto_reply_sent and send_failed (send) across all 5 RICR workers.

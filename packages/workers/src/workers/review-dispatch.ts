@@ -2,8 +2,9 @@ import { Worker } from "bullmq";
 import { z } from "zod";
 import { sql } from "../db.js";
 import { reviewDispatchQueue, scheduledSendQueue } from "../queues.js";
-import { addMinutes, replyPriority, shouldAutoSend } from "../utils.js";
+import { replyPriority, shouldAutoSend } from "../utils.js";
 import { emitEvent } from "../emit-event.js";
+import { calculateSendTime } from "../scheduling.js";
 
 const ReviewDispatchSchema = z.object({
   replyItemId: z.string().uuid(),
@@ -48,6 +49,10 @@ export function createReviewDispatchWorker(): Worker<ReviewDispatchJob> {
       if (!replyItem) {
         throw new Error(`Missing reply_item ${payload.replyItemId}`);
       }
+
+      const [lead] = await sql<{ timezone: string | null }[]>`
+        SELECT timezone FROM leads WHERE id = ${replyItem.lead_id}
+      `;
 
       const [client] = await sql<{
         automation_level: number;
@@ -162,7 +167,12 @@ export function createReviewDispatchWorker(): Worker<ReviewDispatchJob> {
         throw new Error(`Missing draft ${payload.draftId}`);
       }
 
-      const scheduledAt = addMinutes(new Date(), sendDelayMinutes);
+      const scheduledAt = await calculateSendTime(
+        replyItem.client_id,
+        classification.intent,
+        lead?.timezone ?? null,
+        sendDelayMinutes
+      );
 
       const [scheduled] = await sql<{ id: string }[]>`
         INSERT INTO scheduled_sends (
@@ -207,7 +217,8 @@ export function createReviewDispatchWorker(): Worker<ReviewDispatchJob> {
           reply_item_id: payload.replyItemId,
           scheduled_send_id: scheduled.id,
           draft_id: payload.draftId,
-          classification_id: payload.classificationId
+          classification_id: payload.classificationId,
+          scheduled_at: scheduledAt.toISOString()
         },
         traceId: payload.traceId ?? null
       });
