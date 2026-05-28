@@ -3,6 +3,7 @@ import { z } from "zod";
 import { sql } from "../db.js";
 import { getEnv } from "../env.js";
 import { scheduledSendQueue } from "../queues.js";
+import { emitEvent } from "../emit-event.js";
 
 const ScheduledSendJobSchema = z.object({
   scheduledSendId: z.string().uuid(),
@@ -86,8 +87,10 @@ export function createScheduledSendWorker(): Worker<ScheduledSendJob> {
 
       const [rawReply] = await sql<{
         instantly_reply_id: string | null;
+        client_id: string;
+        lead_id: string;
       }[]>`
-        SELECT rr.instantly_reply_id
+        SELECT rr.instantly_reply_id, ri.client_id, ri.lead_id
         FROM raw_replies rr
         JOIN reply_items ri ON ri.raw_reply_id = rr.id
         WHERE ri.id = ${payload.replyItemId}
@@ -131,10 +134,36 @@ export function createScheduledSendWorker(): Worker<ScheduledSendJob> {
           WHERE id = ${payload.replyItemId}
         `;
 
+        await emitEvent({
+          clientId: rawReply.client_id,
+          leadId: rawReply.lead_id,
+          eventType: "auto_reply_sent",
+          metadata: {
+            reply_item_id: payload.replyItemId,
+            scheduled_send_id: payload.scheduledSendId,
+            instantly_message_id: messageId
+          },
+          traceId: payload.traceId ?? null
+        });
+
         return { status: "sent", instantlyMessageId: messageId };
       } catch (error) {
         const err = error instanceof Error ? error : new Error("Unknown send error");
-        await markFailure(payload.scheduledSendId, payload.replyItemId, err);
+        const attemptCount = await markFailure(payload.scheduledSendId, payload.replyItemId, err);
+
+        await emitEvent({
+          clientId: rawReply.client_id,
+          leadId: rawReply.lead_id,
+          eventType: "send_failed",
+          metadata: {
+            reply_item_id: payload.replyItemId,
+            scheduled_send_id: payload.scheduledSendId,
+            attempt_count: attemptCount,
+            error: err.message
+          },
+          traceId: payload.traceId ?? null
+        });
+
         throw err;
       }
     },

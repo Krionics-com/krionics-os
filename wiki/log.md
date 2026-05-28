@@ -208,6 +208,11 @@
 - Fixed table body unique React keys rendering warnings present on the mutable System Audit logs boards.
 - Verified error-free Next.js monorepo production compilation (Exit code 0).
 
+## [2026-05-28] build | Module 2 — Event Emission in Workers
+- Created packages/workers/src/emit-event.ts with emitEvent() helper writing to the partitioned events table. Errors are caught so emission never blocks jobs.
+- Wired reply_received (ingest), reply_classified (classify), draft_generated (draft), review_queued and auto_send_queued (review-dispatch), auto_reply_sent and send_failed (send) across all 5 RICR workers.
+- Extended send.ts rawReply query to JOIN reply_items for client_id/lead_id needed for event metadata.
+
 ## [2026-05-28] build | Module 1 — Seed Operational Config
 - Fixed duplicate PRIMARY KEY in reply_policies migration (id column was incorrectly declared as UUID PRIMARY KEY alongside the composite PK on client_id+intent).
 - Created migration 20260528000001 with seed_client_default_policies() PL/pgSQL function seeding 10 intent rows each for reply_policies and timing_rules per client.
