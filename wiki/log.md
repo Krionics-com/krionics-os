@@ -208,6 +208,11 @@
 - Fixed table body unique React keys rendering warnings present on the mutable System Audit logs boards.
 - Verified error-free Next.js monorepo production compilation (Exit code 0).
 
+## [2026-05-28] build | Module 7 — CRM Sync
+- Created CRM strategy pattern: CRMProvider interface, HubSpotProvider, PipedriveProvider, createCRMProvider() factory.
+- HubSpot: contact search-then-upsert, deal with association. Pipedrive: person search-then-upsert, deal linked to person.
+- crm-sync worker: reads client.crm_type, upserts contact, creates deal on meeting_booked trigger, marks lead crm_synced, emits opportunity_created event.
+
 ## [2026-05-28] build | Module 6 — Cal.com Booking Webhook
 - Created /api/webhooks/calcom handler: HMAC-SHA256 verification, handles BOOKING_CREATED/RESCHEDULED/CANCELLED. On creation: upserts meeting, updates lead status, enqueues CRM sync, schedules 3 BullMQ delayed reminder jobs (24h/72h/5d before meeting).
 - Created booking-reminder worker: checks meeting not cancelled, records reminder in metadata, emits booking_reminder_triggered event.
