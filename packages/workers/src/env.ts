@@ -14,6 +14,8 @@ type WorkerEnv = {
   calcomWebhookSecret?: string;
   hubspotAccessToken?: string;
   pipedriveApiKey?: string;
+  slackBotToken?: string;
+  slackReviewChannelId?: string;
 };
 
 let cachedEnv: WorkerEnv | null = null;
@@ -51,7 +53,9 @@ export function getEnv(): WorkerEnv {
     clayWebhookSecret: process.env.CLAY_WEBHOOK_SECRET,
     calcomWebhookSecret: process.env.CALCOM_WEBHOOK_SECRET,
     hubspotAccessToken: process.env.HUBSPOT_ACCESS_TOKEN,
-    pipedriveApiKey: process.env.PIPEDRIVE_API_KEY
+    pipedriveApiKey: process.env.PIPEDRIVE_API_KEY,
+    slackBotToken: process.env.SLACK_BOT_TOKEN,
+    slackReviewChannelId: process.env.SLACK_REVIEW_CHANNEL_ID
   };
 
   return cachedEnv;
