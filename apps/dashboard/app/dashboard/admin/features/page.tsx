@@ -87,7 +87,7 @@ export default function FeatureFlagsPage() {
   if (!isAdmin) {
     return (
       <div className="flex items-center justify-center min-h-[460px] p-6">
-        <Card className="max-w-md w-full border-destructive/20 bg-destructive/[0.01] backdrop-blur shadow-2xl relative overflow-hidden select-none">
+        <Card className="max-w-md w-full border-destructive/20 shadow-2xl relative overflow-hidden select-none">
           <div className="absolute top-0 left-0 right-0 h-[3px] bg-destructive"></div>
           <CardContent className="p-8 text-center space-y-6">
             <div className="h-16 w-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto text-destructive">
