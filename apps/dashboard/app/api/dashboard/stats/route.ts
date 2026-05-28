@@ -69,8 +69,20 @@ export async function GET(req: NextRequest) {
     // Avg SLA Remaining (hours)
     const [sla] = await sql<{ avg_hours: number }[]>`
       SELECT EXTRACT(EPOCH FROM AVG(sla_expires_at - NOW())) / 3600 as avg_hours
-      FROM reply_items 
+      FROM reply_items
       WHERE status = 'PENDING_REVIEW' ${clientFilter}
+    `;
+
+    // Overdue reviews (SLA expired, still pending)
+    const [overdue] = await sql<{ count: number }[]>`
+      SELECT COUNT(*)::int as count
+      FROM reply_items
+      WHERE status = 'PENDING_REVIEW' AND sla_expires_at < NOW() ${clientFilter}
+    `;
+
+    // Clients currently in onboarding
+    const [onboarding] = await sql<{ count: number }[]>`
+      SELECT COUNT(*)::int as count FROM clients WHERE status = 'onboarding'
     `;
 
     // Real queue health from BullMQ
@@ -108,6 +120,8 @@ export async function GET(req: NextRequest) {
       ai_cost,
       failure_rate,
       avg_sla_remaining: sla?.avg_hours ?? 0,
+      overdue_reviews: overdue?.count ?? 0,
+      onboarding_count: onboarding?.count ?? 0,
     });
   } catch (err: any) {
     console.error("Stats endpoint error:", err);

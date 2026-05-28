@@ -96,7 +96,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const { company_name, contact_email, contact_name, slug, timezone } = body;
+  const {
+    company_name, contact_email, contact_name, slug, timezone,
+    service_type, service_description, positioning_statement, sales_lead_name,
+    icp_description, mrr_usd, setup_fee_usd, contract_start, contract_end,
+    crm_type, crm_config, calendly_link, slack_webhook_url, slack_channel_id,
+    automation_level, tier, config,
+  } = body;
+
   if (!company_name || !contact_email || !contact_name || !slug) {
     return NextResponse.json(
       { error: "company_name, contact_email, contact_name, and slug are required" },
@@ -114,13 +121,36 @@ export async function POST(req: NextRequest) {
 
   try {
     const [client] = await sql<any[]>`
-      INSERT INTO clients (company_name, contact_email, contact_name, slug, timezone)
+      INSERT INTO clients (
+        company_name, contact_email, contact_name, slug, timezone,
+        service_type, service_description, positioning_statement, sales_lead_name,
+        icp_description, mrr_usd, setup_fee_usd, contract_start, contract_end,
+        crm_type, crm_config, calendly_link, slack_webhook_url, slack_channel_id,
+        automation_level, tier, config
+      )
       VALUES (
         ${company_name},
         ${contact_email},
         ${contact_name},
         ${slug},
-        ${timezone ?? "America/New_York"}
+        ${timezone ?? "America/New_York"},
+        ${service_type ?? null},
+        ${service_description ?? null},
+        ${positioning_statement ?? null},
+        ${sales_lead_name ?? null},
+        ${icp_description ?? null},
+        ${mrr_usd ?? null},
+        ${setup_fee_usd ?? null},
+        ${contract_start ?? null},
+        ${contract_end ?? null},
+        ${crm_type ?? null},
+        ${crm_config ? JSON.stringify(crm_config) : null},
+        ${calendly_link ?? null},
+        ${slack_webhook_url ?? null},
+        ${slack_channel_id ?? null},
+        ${automation_level ?? 1},
+        ${tier ?? "growth"},
+        ${config ? JSON.stringify(config) : null}
       )
       RETURNING *
     `;
