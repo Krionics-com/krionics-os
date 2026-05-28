@@ -22,6 +22,7 @@ Concepts
 Architecture
 - [wiki/architecture/standards.md](architecture/standards.md) - Architecture documentation standard.
 - [wiki/architecture/database-schema.md](architecture/database-schema.md) - PostgreSQL schema overview: table groups, RICR subsystem, partitioned tables, key design decisions.
+- [wiki/architecture/ai-provider.md](architecture/ai-provider.md) - AI Provider strategy pattern: 6-method AIProvider interface, ClaudeProvider/OpenAIProvider, PromptBuilder 6-layer architecture, per-client provider override.
 
 Projects
 - [wiki/projects/2026-05-21-monorepo-scaffold.md](projects/2026-05-21-monorepo-scaffold.md) - Monorepo scaffold and AI provider DIP implementation.
@@ -51,3 +52,4 @@ Ingest records
 - [wiki/ingest/2026-05-20-krionics-os-blueprint.md](ingest/2026-05-20-krionics-os-blueprint.md) - Ingest record for the implementation blueprint.
 - [wiki/ingest/2026-05-20-krionics-os-reply-subsystem.md](ingest/2026-05-20-krionics-os-reply-subsystem.md) - Ingest record for the reply subsystem spec.
 - [wiki/ingest/2026-05-21-supabase-schema-migration.md](ingest/2026-05-21-supabase-schema-migration.md) - Ingest record for the Supabase schema migration build session.
+- [wiki/ingest/2026-05-28-module-0-ai-provider-strategy.md](ingest/2026-05-28-module-0-ai-provider-strategy.md) - Module 0: AI Provider strategy pattern — extended to 6 AI invocation points, PromptBuilder, factory fix, worker callsite fixes.

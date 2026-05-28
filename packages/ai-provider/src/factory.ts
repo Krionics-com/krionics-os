@@ -3,6 +3,11 @@ import type { AIProvider } from "./types.js";
 import { ClaudeProvider } from "./claude.js";
 import { OpenAIProvider } from "./openai.js";
 
+export interface CreateAIProviderOptions {
+  /** Overrides the AI_PROVIDER env var for per-client provider selection. */
+  providerOverride?: string;
+}
+
 function requireEnv(name: string): string {
   const value = process.env[name];
   if (!value) {
@@ -11,8 +16,10 @@ function requireEnv(name: string): string {
   return value;
 }
 
-export function createAIProvider(): AIProvider {
-  const provider = (process.env.AI_PROVIDER ?? "claude").toLowerCase();
+export function createAIProvider(options?: CreateAIProviderOptions): AIProvider {
+  const provider = (
+    options?.providerOverride ?? process.env.AI_PROVIDER ?? "claude"
+  ).toLowerCase();
 
   if (provider === "claude") {
     const apiKey = requireEnv("ANTHROPIC_API_KEY");
@@ -27,5 +34,10 @@ export function createAIProvider(): AIProvider {
     return new OpenAIProvider({ apiKey, model, baseURL });
   }
 
-  throw new AIProviderError("factory", "UNSUPPORTED_PROVIDER", `Unsupported AI_PROVIDER: ${provider}`, false);
+  throw new AIProviderError(
+    "factory",
+    "UNSUPPORTED_PROVIDER",
+    `Unsupported AI provider: "${provider}". Expected "claude" or "openai".`,
+    false
+  );
 }

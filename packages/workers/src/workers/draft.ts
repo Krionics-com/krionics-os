@@ -30,14 +30,7 @@ async function loadConfig(keys: string[]): Promise<Record<string, string>> {
 
 export function createDraftWorker(): Worker<DraftJob> {
   const env = getEnv();
-  const provider = createAIProvider({
-    provider: env.aiProvider,
-    anthropicApiKey: env.anthropicApiKey,
-    anthropicModel: env.anthropicModel,
-    openaiApiKey: env.openaiApiKey,
-    openaiBaseUrl: env.openaiBaseUrl,
-    openaiModel: env.openaiModel
-  });
+  const provider = createAIProvider();
 
   return new Worker(
     draftQueue.name,
