@@ -9,6 +9,7 @@ import { createApolloImportWorker } from "./workers/apollo-import.js";
 import { createClayEnrichmentWorker } from "./workers/clay-enrichment.js";
 import { createSignalExtractionWorker } from "./workers/signal-extraction.js";
 import { createBookingReminderWorker } from "./workers/booking-reminder.js";
+import { createCRMSyncWorker } from "./workers/crm-sync.js";
 
 type ManagedWorker = {
   name: string;
@@ -41,7 +42,8 @@ const workers: ManagedWorker[] = [
   { name: "lead:apollo_import", worker: createApolloImportWorker() },
   { name: "lead:clay_enrichment", worker: createClayEnrichmentWorker() },
   { name: "lead:signal_extraction", worker: createSignalExtractionWorker() },
-  { name: "meeting:booking_reminder", worker: createBookingReminderWorker() }
+  { name: "meeting:booking_reminder", worker: createBookingReminderWorker() },
+  { name: "crm:sync", worker: createCRMSyncWorker() }
 ];
 
 workers.forEach(attachDlqHandler);
