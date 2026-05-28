@@ -208,6 +208,13 @@
 - Fixed table body unique React keys rendering warnings present on the mutable System Audit logs boards.
 - Verified error-free Next.js monorepo production compilation (Exit code 0).
 
+## [2026-05-28] build | Module 4 — Apollo Lead Acquisition
+- Added APOLLO_API_KEY, CLAY_API_KEY, CLAY_WEBHOOK_SECRET, CALCOM_WEBHOOK_SECRET, PIPEDRIVE_API_KEY to env.ts and .env.example.
+- Added 7 new BullMQ queues covering the full acquisition-to-analytics pipeline.
+- Created public.ts exports barrel; updated package.json main/types so dashboard can import queue objects from @krionics/workers.
+- Created Apollo API client and apollo-import worker: upserts leads from Apollo search API, emits leads_imported event, enqueues Clay enrichment for new leads.
+- Created POST /api/apollo/import dashboard endpoint (202 Accepted pattern).
+
 ## [2026-05-28] build | Module 3 — Response Scheduling with Business Hours
 - Created packages/workers/src/scheduling.ts with calculateSendTime() that reads timing_rules, picks a random delay in [min, max], and enforces business hours using Intl.DateTimeFormat for timezone-aware boundary detection.
 - Business hours enforcement handles before-start, after-end, and weekend cases with a 7-iteration loop guard.

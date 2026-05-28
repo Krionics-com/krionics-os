@@ -3,8 +3,8 @@
   "version": "0.0.0",
   "type": "module",
   "private": true,
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./dist/public.js",
+  "types": "./dist/public.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",

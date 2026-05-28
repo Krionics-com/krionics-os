@@ -5,6 +5,7 @@ import { createClassifyWorker } from "./workers/classify.js";
 import { createDraftWorker } from "./workers/draft.js";
 import { createReviewDispatchWorker } from "./workers/review-dispatch.js";
 import { createScheduledSendWorker } from "./workers/send.js";
+import { createApolloImportWorker } from "./workers/apollo-import.js";
 
 type ManagedWorker = {
   name: string;
@@ -33,7 +34,8 @@ const workers: ManagedWorker[] = [
   { name: "reply:classification", worker: createClassifyWorker() },
   { name: "reply:draft_generation", worker: createDraftWorker() },
   { name: "reply:review_dispatch", worker: createReviewDispatchWorker() },
-  { name: "reply:scheduled_send", worker: createScheduledSendWorker() }
+  { name: "reply:scheduled_send", worker: createScheduledSendWorker() },
+  { name: "lead:apollo_import", worker: createApolloImportWorker() }
 ];
 
 workers.forEach(attachDlqHandler);
