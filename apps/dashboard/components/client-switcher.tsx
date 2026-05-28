@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import useSWR from "swr";
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,40 +10,104 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Check, Building2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+interface Client {
+  id: string;
+  company_name: string;
+  slug: string;
+}
+
+interface User {
+  role: string;
+}
+
+interface ClientsResponse {
+  clients: Client[];
+}
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export function ClientSwitcher() {
-  const { data: user } = useSWR("/api/auth/me", fetcher);
-  // We'll just fetch all clients for the switcher. In a real app we might fetch `/api/clients`.
-  // Since we don't have `/api/dashboard/clients` yet, let's just make it graceful if it fails.
-  const { data: clients } = useSWR("/api/dashboard/clients", fetcher, { shouldRetryOnError: false });
-  const [selectedClient, setSelectedClient] = useState<string | null>(null);
+  const { data: user } = useSWR<User>("/api/auth/me", fetcher);
+  const { data: clientsData, isLoading } = useSWR<ClientsResponse>(
+    "/api/dashboard/clients",
+    fetcher,
+    { shouldRetryOnError: false }
+  );
+  const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
 
-  // Super admins see all clients
   const canSeeAllClients = user?.role === "super_admin" || user?.role === "admin";
-  const clientList = canSeeAllClients ? clients?.clients || [] : [];
+  const clientList = canSeeAllClients ? (clientsData?.clients ?? []) : [];
+  const selectedClient = clientList.find((c) => c.id === selectedClientId) ?? null;
 
-  if (!canSeeAllClients || !clientList.length) {
-    return <span className="text-sm text-muted-foreground">All Clients</span>;
+  if (!canSeeAllClients) return null;
+
+  if (isLoading) {
+    return (
+      <div
+        aria-label="Loading clients"
+        className="h-8 w-36 animate-pulse rounded-md bg-muted"
+      />
+    );
+  }
+
+  if (!clientList.length) {
+    return (
+      <span className="text-sm text-muted-foreground">All Clients</span>
+    );
   }
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-[color,box-shadow] hover:bg-accent hover:text-accent-foreground h-8 rounded-md px-3">
-        {selectedClient ? clientList.find((c: any) => c.id === selectedClient)?.company_name : "All Clients"}
-        <ChevronDown className="ml-2 h-4 w-4" />
+      <DropdownMenuTrigger
+        className={cn(
+          "inline-flex items-center gap-1.5 whitespace-nowrap rounded-md px-3 h-8",
+          "text-sm font-medium transition-colors",
+          "hover:bg-accent hover:text-accent-foreground",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          selectedClient && "bg-accent/50"
+        )}
+        aria-label={selectedClient ? `Client: ${selectedClient.company_name}` : "All Clients"}
+      >
+        <Building2 className="h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden />
+        <span>{selectedClient?.company_name ?? "All Clients"}</span>
+        <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden />
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start">
-        <DropdownMenuLabel>Select Client</DropdownMenuLabel>
+
+      <DropdownMenuContent align="start" className="w-56">
+        <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+          Switch Client
+        </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => setSelectedClient(null)}>
-          All Clients
+
+        <DropdownMenuItem
+          onClick={() => setSelectedClientId(null)}
+          className="gap-2"
+          aria-current={selectedClientId === null ? "true" : undefined}
+        >
+          <Check
+            className={cn("h-4 w-4 shrink-0", selectedClientId !== null && "invisible")}
+            aria-hidden
+          />
+          <span>All Clients</span>
         </DropdownMenuItem>
-        {clientList.map((client: any) => (
-          <DropdownMenuItem key={client.id} onClick={() => setSelectedClient(client.id)}>
-            {client.company_name}
+
+        <DropdownMenuSeparator />
+
+        {clientList.map((client) => (
+          <DropdownMenuItem
+            key={client.id}
+            onClick={() => setSelectedClientId(client.id)}
+            className="gap-2"
+            aria-current={selectedClientId === client.id ? "true" : undefined}
+          >
+            <Check
+              className={cn("h-4 w-4 shrink-0", selectedClientId !== client.id && "invisible")}
+              aria-hidden
+            />
+            <span>{client.company_name}</span>
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
