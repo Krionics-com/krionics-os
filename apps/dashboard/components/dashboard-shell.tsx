@@ -14,7 +14,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         <button
           type="button"
           aria-label="Close navigation"
-          className="fixed inset-0 z-30 bg-black/85 md:hidden"
+          className="fixed inset-0 z-30 bg-black md:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}

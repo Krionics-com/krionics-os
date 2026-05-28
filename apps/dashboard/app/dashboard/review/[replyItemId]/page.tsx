@@ -595,7 +595,7 @@ export default function ReplyDetailPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           {/* Backdrop */}
           <div 
-            className="fixed inset-0 bg-black/85 transition-opacity"
+            className="fixed inset-0 bg-black transition-opacity"
             onClick={() => setIsRejectOpen(false)}
           />
 
