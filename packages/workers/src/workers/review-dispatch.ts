@@ -4,6 +4,8 @@ import { sql } from "../db.js";
 import { reviewDispatchQueue, scheduledSendQueue } from "../queues.js";
 import { replyPriority, shouldAutoSend } from "../utils.js";
 import { emitEvent } from "../emit-event.js";
+import { notifyReviewQueued } from "../notify-slack.js";
+import { getFeatureFlag } from "../config.js";
 import { calculateSendTime } from "../scheduling.js";
 
 const ReviewDispatchSchema = z.object({
@@ -107,7 +109,8 @@ export function createReviewDispatchWorker(): Worker<ReviewDispatchJob> {
       const sendDelayMinutes = Number(config["send.default_delay_minutes"] ?? "15");
 
       const intent = classification.intent as "POSITIVE" | "OBJECTION" | "FAQ" | "BOOKING_INTENT" | "NURTURE" | "UNSUBSCRIBE" | "NOT_RELEVANT" | "UNKNOWN";
-      const autoSend = payload.draftId
+      const autoSendFlagEnabled = await getFeatureFlag(replyItem.client_id, "auto_send");
+      const autoSend = autoSendFlagEnabled && payload.draftId
         ? shouldAutoSend(client.automation_level, intent, Number(classification.confidence), classification.requires_human, autoRouteThreshold)
         : false;
 
@@ -148,6 +151,14 @@ export function createReviewDispatchWorker(): Worker<ReviewDispatchJob> {
             classification_id: payload.classificationId
           },
           traceId: payload.traceId ?? null
+        });
+
+        await notifyReviewQueued({
+          clientId: replyItem.client_id,
+          replyItemId: payload.replyItemId,
+          reviewItemId: reviewItem.id,
+          intent: classification.intent,
+          priority: replyPriority(intent)
         });
 
         return { status: "queued", reviewItemId: reviewItem.id };

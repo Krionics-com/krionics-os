@@ -4,6 +4,7 @@ import { sql } from "../db.js";
 import { getEnv } from "../env.js";
 import { scheduledSendQueue } from "../queues.js";
 import { emitEvent } from "../emit-event.js";
+import { getGlobalConfig } from "../config.js";
 
 const ScheduledSendJobSchema = z.object({
   scheduledSendId: z.string().uuid(),
@@ -80,6 +81,12 @@ export function createScheduledSendWorker(): Worker<ScheduledSendJob> {
       if (scheduled.status !== "PENDING") {
         return { status: "skipped", reason: "not_pending" };
       }
+
+      const sendingLimits = await getGlobalConfig<{
+        max_emails_per_inbox_day: number;
+        concurrent_sending_jobs: number;
+      }>("sending_limits");
+      const _concurrentLimit = sendingLimits?.concurrent_sending_jobs ?? 10;
 
       if (new Date(scheduled.scheduled_at) > new Date()) {
         return { status: "skipped", reason: "not_due" };

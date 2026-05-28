@@ -6,6 +6,7 @@ import { sql } from "../db.js";
 import { draftQueue, reviewDispatchQueue } from "../queues.js";
 import { getEnv } from "../env.js";
 import { emitEvent } from "../emit-event.js";
+import { logAIInvocation, estimateCostMicro } from "../log-ai-invocation.js";
 
 const DraftJobSchema = z.object({
   replyItemId: z.string().uuid(),
@@ -123,6 +124,7 @@ export function createDraftWorker(): Worker<DraftJob> {
       const slaHours = Number(config["review.sla_hours_default"] ?? "4");
       const slaDeadline = new Date(Date.now() + slaHours * 3600 * 1000);
 
+      const draftTraceId = payload.traceId ?? crypto.randomUUID();
       const start = Date.now();
       const output = await provider.generateDraft({
         reply_body: rawReply.body_text,
@@ -139,6 +141,14 @@ export function createDraftWorker(): Worker<DraftJob> {
       const durationMs = Date.now() - start;
 
       const validated = DraftOutputSchema.parse(output);
+
+      await logAIInvocation({
+        clientId: replyItem.client_id, invocationType: "draft_generation",
+        traceId: draftTraceId, entityType: "reply", entityId: payload.replyItemId,
+        model: modelUsed, latencyMs: durationMs,
+        success: true, validatedOutput: validated, validationPassed: true,
+        costUsdMicro: estimateCostMicro(modelUsed, 800, 400)
+      });
 
       const [draft] = await sql<{ id: string }[]>`
         INSERT INTO reply_drafts (

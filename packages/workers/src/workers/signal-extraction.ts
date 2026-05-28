@@ -2,8 +2,9 @@ import { Worker } from "bullmq";
 import { z } from "zod";
 import { createAIProvider } from "@krionics/ai-provider";
 import { sql } from "../db.js";
-import { signalExtractionQueue } from "../queues.js";
+import { signalExtractionQueue, sequenceGenerationQueue } from "../queues.js";
 import { emitEvent } from "../emit-event.js";
+import { logAIInvocation, estimateCostMicro } from "../log-ai-invocation.js";
 
 const SignalExtractionJobSchema = z.object({
   clientId: z.string().uuid(),
@@ -86,6 +87,7 @@ export function createSignalExtractionWorker(): Worker<SignalExtractionJob> {
         recent_news: enriched.recent_news
       };
 
+      const sigTraceId = payload.traceId ?? crypto.randomUUID();
       const start = Date.now();
       const output = await provider.extractSignals({
         lead: {
@@ -104,6 +106,14 @@ export function createSignalExtractionWorker(): Worker<SignalExtractionJob> {
         }
       });
       const durationMs = Date.now() - start;
+
+      await logAIInvocation({
+        clientId: payload.clientId, invocationType: "signal_extraction",
+        traceId: sigTraceId, entityType: "lead", entityId: payload.leadId,
+        model: "claude-sonnet-4-20250514", latencyMs: durationMs,
+        success: true, validatedOutput: output, validationPassed: true,
+        costUsdMicro: estimateCostMicro("claude-sonnet-4-20250514", 1200, 600)
+      });
 
       await sql`
         UPDATE enriched_leads
@@ -131,6 +141,18 @@ export function createSignalExtractionWorker(): Worker<SignalExtractionJob> {
         },
         traceId: payload.traceId ?? null
       });
+
+      // Kick off sequence generation now that signals are ready
+      await sequenceGenerationQueue.add(
+        "generate_sequence",
+        {
+          clientId: payload.clientId,
+          leadId: payload.leadId,
+          campaignId: null,
+          traceId: payload.traceId ?? null
+        },
+        { jobId: `seq-gen:${payload.clientId}:${payload.leadId}` }
+      );
 
       return {
         status: "extracted",

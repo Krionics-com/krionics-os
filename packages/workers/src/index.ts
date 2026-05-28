@@ -1,5 +1,6 @@
 import { Worker } from "bullmq";
-import { redis, moveToDLQ } from "./queues.js";
+import { redis, moveToDLQ, analyticsAggregateQueue } from "./queues.js";
+import { notifyDLQ } from "./notify-slack.js";
 import { createIngestWorker } from "./workers/ingest.js";
 import { createClassifyWorker } from "./workers/classify.js";
 import { createDraftWorker } from "./workers/draft.js";
@@ -10,6 +11,11 @@ import { createClayEnrichmentWorker } from "./workers/clay-enrichment.js";
 import { createSignalExtractionWorker } from "./workers/signal-extraction.js";
 import { createBookingReminderWorker } from "./workers/booking-reminder.js";
 import { createCRMSyncWorker } from "./workers/crm-sync.js";
+import { createAnalyticsAggregatorWorker } from "./workers/analytics-aggregator.js";
+import { createAnalyticsIntelligenceWorker } from "./workers/analytics-intelligence.js";
+import { createSequenceGenerationWorker } from "./workers/sequence-generation.js";
+import { createInstantlyPushWorker } from "./workers/instantly-push.js";
+import { createObjectionIntelligenceWorker } from "./workers/objection-intelligence.js";
 
 type ManagedWorker = {
   name: string;
@@ -25,6 +31,7 @@ function attachDlqHandler({ name, worker }: ManagedWorker): void {
     const maxAttempts = job.opts.attempts ?? 1;
     if (job.attemptsMade >= maxAttempts) {
       await moveToDLQ(name, job.name, job.data, error, job.attemptsMade);
+      await notifyDLQ(name, job.name, error, job.attemptsMade);
     }
   });
 
@@ -43,10 +50,24 @@ const workers: ManagedWorker[] = [
   { name: "lead:clay_enrichment", worker: createClayEnrichmentWorker() },
   { name: "lead:signal_extraction", worker: createSignalExtractionWorker() },
   { name: "meeting:booking_reminder", worker: createBookingReminderWorker() },
-  { name: "crm:sync", worker: createCRMSyncWorker() }
+  { name: "crm:sync", worker: createCRMSyncWorker() },
+  { name: "analytics:aggregator", worker: createAnalyticsAggregatorWorker() },
+  { name: "analytics:intelligence", worker: createAnalyticsIntelligenceWorker() },
+  { name: "lead:sequence_generation", worker: createSequenceGenerationWorker() },
+  { name: "lead:instantly_push", worker: createInstantlyPushWorker() },
+  { name: "reply:objection_intelligence", worker: createObjectionIntelligenceWorker() }
 ];
 
 workers.forEach(attachDlqHandler);
+
+// Schedule analytics aggregator to run every 15 minutes (daily granularity)
+analyticsAggregateQueue.add(
+  "aggregate_daily",
+  { granularity: "daily" },
+  { repeat: { every: 15 * 60 * 1000 }, jobId: "analytics-aggregate-daily-repeat" }
+).catch((err) => {
+  console.error("[workers] Failed to schedule analytics aggregator:", err);
+});
 
 console.log("[workers] RICR workers are running.");
 

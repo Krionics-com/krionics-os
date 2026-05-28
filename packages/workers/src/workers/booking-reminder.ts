@@ -3,6 +3,7 @@ import { z } from "zod";
 import { sql } from "../db.js";
 import { bookingReminderQueue } from "../queues.js";
 import { emitEvent } from "../emit-event.js";
+import { getFeatureFlag } from "../config.js";
 
 const BookingReminderJobSchema = z.object({
   meetingId: z.string().uuid(),
@@ -35,6 +36,11 @@ export function createBookingReminderWorker(): Worker<BookingReminderJob> {
     bookingReminderQueue.name,
     async (job) => {
       const payload = BookingReminderJobSchema.parse(job.data);
+
+      const remindersEnabled = await getFeatureFlag(payload.clientId, "booking_reminders");
+      if (!remindersEnabled) {
+        return { status: "skipped", reason: "booking_reminders_disabled" };
+      }
 
       // Check meeting still exists and is scheduled (not cancelled)
       const [meeting] = await sql<{ id: string; status: string }[]>`
