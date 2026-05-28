@@ -208,6 +208,11 @@
 - Fixed table body unique React keys rendering warnings present on the mutable System Audit logs boards.
 - Verified error-free Next.js monorepo production compilation (Exit code 0).
 
+## [2026-05-28] build | Module 5 — Clay Enrichment Workflow
+- Created Clay API client and clay-enrichment worker (async enrichment trigger).
+- Created Clay webhook handler at /api/webhooks/clay: validates signature, upserts enriched_leads, enqueues signal extraction.
+- Created signal-extraction worker: calls extractSignals() (AI invocation point 1), writes icp_fit_score/buying_signals/personalization_hooks to enriched_leads, emits enrichment_completed event.
+
 ## [2026-05-28] build | Module 4 — Apollo Lead Acquisition
 - Added APOLLO_API_KEY, CLAY_API_KEY, CLAY_WEBHOOK_SECRET, CALCOM_WEBHOOK_SECRET, PIPEDRIVE_API_KEY to env.ts and .env.example.
 - Added 7 new BullMQ queues covering the full acquisition-to-analytics pipeline.
