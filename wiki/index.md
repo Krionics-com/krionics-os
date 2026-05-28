@@ -14,6 +14,7 @@ Sources
 - [wiki/sources/2026-05-20-krionics-os-blueprint.md](sources/2026-05-20-krionics-os-blueprint.md) - Summary of the Krionics OS implementation blueprint.
 - [wiki/sources/2026-05-20-krionics-os-reply-subsystem.md](sources/2026-05-20-krionics-os-reply-subsystem.md) - Summary of the reply ingestion and review subsystem.
 - [wiki/sources/2026-05-21-supabase-schema-migration.md](sources/2026-05-21-supabase-schema-migration.md) - Detailed record of the 17-migration Supabase schema build and packages/db runner.
+- [wiki/sources/2026-05-23-krionics-os-architecture-v1.md](sources/2026-05-23-krionics-os-architecture-v1.md) - Full summary of Master System Architecture Document v1.0 (canonical reference). Covers all 17 sections including state machine, event catalog, queue definitions, AI invocation points, automation levels, prompt engineering, and implementation status.
 
 Concepts
 - [wiki/concepts/llm-wiki.md](concepts/llm-wiki.md) - Concept page for the LLM Wiki pattern.
@@ -21,6 +22,7 @@ Concepts
 Architecture
 - [wiki/architecture/standards.md](architecture/standards.md) - Architecture documentation standard.
 - [wiki/architecture/database-schema.md](architecture/database-schema.md) - PostgreSQL schema overview: table groups, RICR subsystem, partitioned tables, key design decisions.
+- [wiki/architecture/ai-provider.md](architecture/ai-provider.md) - AI Provider strategy pattern: 6-method AIProvider interface, ClaudeProvider/OpenAIProvider, PromptBuilder 6-layer architecture, per-client provider override.
 
 Projects
 - [wiki/projects/2026-05-21-monorepo-scaffold.md](projects/2026-05-21-monorepo-scaffold.md) - Monorepo scaffold and AI provider DIP implementation.
@@ -42,6 +44,7 @@ Projects
 - [wiki/projects/2026-05-23-dashboard-phase12-voice-agents.md](projects/2026-05-23-dashboard-phase12-voice-agents.md) - Dashboard Phase 12 — Voice Agents Call Monitoring.
 - [wiki/projects/2026-05-23-dashboard-phase13-admin-config.md](projects/2026-05-23-dashboard-phase13-admin-config.md) - Dashboard Phase 13 — Global Configurations & Feature Flags.
 - [wiki/projects/2026-05-23-dashboard-phase14-search.md](projects/2026-05-23-dashboard-phase14-search.md) - Dashboard Phase 14 — Command Palette & Global Search.
+- [wiki/projects/2026-05-23-reply-orchestration-phase1-3.md](projects/2026-05-23-reply-orchestration-phase1-3.md) - Reply Orchestration System Phase 1-3: DB migrations (enriched_leads, events, lead_state_history, reply_policies, timing_rules, response_queue), Instantly webhook handler, lead state machine. Merged to main via PR #4.
 
 Ingest records
 - [wiki/ingest/2026-05-20-llm-wiki-idea.md](ingest/2026-05-20-llm-wiki-idea.md) - First ingest example and actions taken.
@@ -49,3 +52,12 @@ Ingest records
 - [wiki/ingest/2026-05-20-krionics-os-blueprint.md](ingest/2026-05-20-krionics-os-blueprint.md) - Ingest record for the implementation blueprint.
 - [wiki/ingest/2026-05-20-krionics-os-reply-subsystem.md](ingest/2026-05-20-krionics-os-reply-subsystem.md) - Ingest record for the reply subsystem spec.
 - [wiki/ingest/2026-05-21-supabase-schema-migration.md](ingest/2026-05-21-supabase-schema-migration.md) - Ingest record for the Supabase schema migration build session.
+- [wiki/ingest/2026-05-28-module-0-ai-provider-strategy.md](ingest/2026-05-28-module-0-ai-provider-strategy.md) - Module 0: AI Provider strategy pattern — extended to 6 AI invocation points, PromptBuilder, factory fix, worker callsite fixes.
+- [wiki/ingest/2026-05-28-module-1-seed-policies.md](ingest/2026-05-28-module-1-seed-policies.md) - Module 1: Operational config seed — fixed reply_policies duplicate PK, seeder function, trigger, timing rules defaults.
+- [wiki/ingest/2026-05-28-module-2-event-emission.md](ingest/2026-05-28-module-2-event-emission.md) - Module 2: Event emission — emitEvent helper, wired into all 5 RICR workers for 7 event types.
+- [wiki/ingest/2026-05-28-module-3-response-scheduling.md](ingest/2026-05-28-module-3-response-scheduling.md) - Module 3: Response scheduling — calculateSendTime with randomized delay, business hours enforcement, prospect timezone support.
+- [wiki/ingest/2026-05-28-module-4-apollo-lead-acquisition.md](ingest/2026-05-28-module-4-apollo-lead-acquisition.md) - Module 4: Apollo lead acquisition — Apollo API client, import worker with upsert+dedup, dashboard trigger endpoint, 7 new queues, public exports barrel.
+- [wiki/ingest/2026-05-28-module-5-clay-enrichment.md](ingest/2026-05-28-module-5-clay-enrichment.md) - Module 5: Clay enrichment — Clay API client, enrichment worker, Clay webhook handler, signal extraction worker (AI invocation point 1).
+- [wiki/ingest/2026-05-28-module-6-calcom-booking.md](ingest/2026-05-28-module-6-calcom-booking.md) - Module 6: Cal.com booking webhook — HMAC sig verification, meeting upsert, lead status update, CRM sync trigger, 3-tier reminder scheduling.
+- [wiki/ingest/2026-05-28-module-7-crm-sync.md](ingest/2026-05-28-module-7-crm-sync.md) - Module 7: CRM sync — HubSpot and Pipedrive strategy pattern, upsertContact + createDeal, crm-sync worker triggered by meeting_booked events.
+- [wiki/ingest/2026-05-28-module-8-analytics-intelligence.md](ingest/2026-05-28-module-8-analytics-intelligence.md) - Module 8: Analytics Intelligence — analytics_snapshots migration, analytics-aggregator worker (15-min repeatable), analytics-intelligence worker (AI invocation point 6, weekly analysis).

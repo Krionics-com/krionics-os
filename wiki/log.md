@@ -193,6 +193,12 @@
 - Added "Features" and "Configuration" sub-links to the layout Sidebar navigation with `Zap` and `Sliders` icons.
 - Verified error-free Next.js compilation (Exit code 0).
 
+## [2026-05-23] ingest | Krionics OS Master Architecture Document v1.0
+- Ingested full 1970-line architecture spec (v1.0, all 17 sections + appendices).
+- Added wiki/sources/2026-05-23-krionics-os-architecture-v1.md with section-by-section summary.
+- Updated wiki/index.md with source link.
+- Updated wiki/architecture/database-schema.md with reply orchestration extension tables.
+
 ## [2026-05-23] project | Phase 14 — Command Palette & Global Search
 - Developed high-performance search API endpoint `/api/search` using optimized PG `ILIKE` group lookups capped to a max of 5 hits per category.
 - Created premium client-side Command Palette modal (`components/command-palette.tsx`) rendered at body-level using React portals.
@@ -201,3 +207,68 @@
 - Enabled syntax actions matching starting `>` inputs suggesting dynamic campaigns, client profiles, and reviews shortcuts.
 - Fixed table body unique React keys rendering warnings present on the mutable System Audit logs boards.
 - Verified error-free Next.js monorepo production compilation (Exit code 0).
+
+## [2026-05-28] build | Module 7 — CRM Sync
+- Created CRM strategy pattern: CRMProvider interface, HubSpotProvider, PipedriveProvider, createCRMProvider() factory.
+- HubSpot: contact search-then-upsert, deal with association. Pipedrive: person search-then-upsert, deal linked to person.
+- crm-sync worker: reads client.crm_type, upserts contact, creates deal on meeting_booked trigger, marks lead crm_synced, emits opportunity_created event.
+
+## [2026-05-28] build | Module 6 — Cal.com Booking Webhook
+- Created /api/webhooks/calcom handler: HMAC-SHA256 verification, handles BOOKING_CREATED/RESCHEDULED/CANCELLED. On creation: upserts meeting, updates lead status, enqueues CRM sync, schedules 3 BullMQ delayed reminder jobs (24h/72h/5d before meeting).
+- Created booking-reminder worker: checks meeting not cancelled, records reminder in metadata, emits booking_reminder_triggered event.
+
+## [2026-05-28] build | Module 5 — Clay Enrichment Workflow
+- Created Clay API client and clay-enrichment worker (async enrichment trigger).
+- Created Clay webhook handler at /api/webhooks/clay: validates signature, upserts enriched_leads, enqueues signal extraction.
+- Created signal-extraction worker: calls extractSignals() (AI invocation point 1), writes icp_fit_score/buying_signals/personalization_hooks to enriched_leads, emits enrichment_completed event.
+
+## [2026-05-28] build | Module 4 — Apollo Lead Acquisition
+- Added APOLLO_API_KEY, CLAY_API_KEY, CLAY_WEBHOOK_SECRET, CALCOM_WEBHOOK_SECRET, PIPEDRIVE_API_KEY to env.ts and .env.example.
+- Added 7 new BullMQ queues covering the full acquisition-to-analytics pipeline.
+- Created public.ts exports barrel; updated package.json main/types so dashboard can import queue objects from @krionics/workers.
+- Created Apollo API client and apollo-import worker: upserts leads from Apollo search API, emits leads_imported event, enqueues Clay enrichment for new leads.
+- Created POST /api/apollo/import dashboard endpoint (202 Accepted pattern).
+
+## [2026-05-28] build | Module 3 — Response Scheduling with Business Hours
+- Created packages/workers/src/scheduling.ts with calculateSendTime() that reads timing_rules, picks a random delay in [min, max], and enforces business hours using Intl.DateTimeFormat for timezone-aware boundary detection.
+- Business hours enforcement handles before-start, after-end, and weekend cases with a 7-iteration loop guard.
+- Prospect timezone takes precedence over client timezone when send_in_prospect_timezone is true.
+- Wired into review-dispatch.ts: replaced hardcoded addMinutes call with calculateSendTime, added lead timezone query, updated auto_send_queued event metadata with scheduled_at.
+
+## [2026-05-28] build | Module 2 — Event Emission in Workers
+- Created packages/workers/src/emit-event.ts with emitEvent() helper writing to the partitioned events table. Errors are caught so emission never blocks jobs.
+- Wired reply_received (ingest), reply_classified (classify), draft_generated (draft), review_queued and auto_send_queued (review-dispatch), auto_reply_sent and send_failed (send) across all 5 RICR workers.
+- Extended send.ts rawReply query to JOIN reply_items for client_id/lead_id needed for event metadata.
+
+## [2026-05-28] build | Module 8 — Analytics Intelligence
+- Created migration 20260528000002 with analytics_snapshots table (reply metrics, intent_breakdown JSONB, top_objections, AI analysis columns with unique index on client+period+granularity).
+- Created packages/workers/src/workers/analytics-aggregator.ts: aggregates reply_items + events per client into analytics_snapshots, computes reply/positive/booking rates, emits analytics_snapshot_created event, enqueues intelligence analysis for weekly snapshots.
+- Created packages/workers/src/workers/analytics-intelligence.ts (AI invocation point 6): calls provider.analyzePerformance(), writes ai_summary, ai_key_insights, ai_recommended_actions, ai_sequence_suggestions, ai_health_score back to snapshot, emits analytics_ai_analyzed event.
+- Wired both workers into packages/workers/src/index.ts; added BullMQ repeatable job running analytics-aggregate every 15 minutes.
+- Created wiki/ingest/2026-05-28-module-8-analytics-intelligence.md.
+
+## [2026-05-28] build | Module 1 — Seed Operational Config
+- Fixed duplicate PRIMARY KEY in reply_policies migration (id column was incorrectly declared as UUID PRIMARY KEY alongside the composite PK on client_id+intent).
+- Created migration 20260528000001 with seed_client_default_policies() PL/pgSQL function seeding 10 intent rows each for reply_policies and timing_rules per client.
+- Added trigger on_client_created_seed_policies that auto-seeds new clients on INSERT.
+- Backfill DO block seeds all existing clients.
+- Created packages/workers/src/seed-client-policies.ts TypeScript wrapper for application-level seeding.
+
+## [2026-05-28] build | Module 0 — AI Provider Strategy Pattern
+- Extended `AIProvider` interface from 2 to 6 methods covering all AI invocation points (signal extraction, sequence generation, classification, draft generation, objection intelligence, analytics intelligence).
+- Added 4 new Zod schema pairs to `@krionics/schema` for the 4 new methods.
+- Created `packages/ai-provider/src/prompt-builder.ts` with 6-layer composable prompt architecture and per-operation prompt factories.
+- Rewrote `ClaudeProvider` and `OpenAIProvider` to implement all 6 methods using shared call helpers and prompt-builder.
+- Fixed factory signature mismatch: `createAIProvider()` now accepts optional `{ providerOverride }` for per-client provider selection; API keys always from env vars.
+- Fixed `classify.ts` and `draft.ts` worker callsites that were passing silently-ignored params.
+- `packages/schema` and `packages/ai-provider` compile with zero TypeScript errors.
+- Created `wiki/architecture/ai-provider.md` and `wiki/ingest/2026-05-28-module-0-ai-provider-strategy.md`.
+
+## [2026-05-23] build | Reply Orchestration System Phase 1-3
+- Phase 1: Created 10 Supabase migrations (006–015) adding 6 new tables (enriched_leads, events, lead_state_history, reply_policies, timing_rules, response_queue) and column extensions to clients, leads, raw_replies, reply_drafts.
+- Phase 2: Implemented Instantly webhook handler at `apps/dashboard/app/api/webhooks/instantly/route.ts` with HMAC-SHA256 signature verification, 202 Accepted response, and BullMQ ingestQueue enqueue.
+- Phase 3: Implemented lead state machine at `apps/dashboard/lib/lead-state-machine.ts` with 27 states, validated transitions, and audit trail recording in lead_state_history.
+- Created apps/dashboard/lib/queues.ts to re-export BullMQ queues from @krionics/workers package.
+- All prior RICR workers (ingest/classify/draft/review-dispatch/send) were already implemented and connect automatically via the queues.
+- Merged to main via PR #4 (squash merge from claude/hopeful-planck-q4WyA).
+- Added wiki/projects/2026-05-23-reply-orchestration-phase1-3.md and updated index, log, and database-schema.md.

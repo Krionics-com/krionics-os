@@ -6,6 +6,7 @@ import { sql } from "../db.js";
 import { classificationQueue, draftQueue, reviewDispatchQueue } from "../queues.js";
 import { getEnv } from "../env.js";
 import { sentimentFromScore, urgencyFromScore } from "../utils.js";
+import { emitEvent } from "../emit-event.js";
 
 const ClassificationJobSchema = z.object({
   replyItemId: z.string().uuid(),
@@ -33,14 +34,7 @@ async function loadConfig(keys: string[]): Promise<Record<string, string>> {
 
 export function createClassifyWorker(): Worker<ClassificationJob> {
   const env = getEnv();
-  const provider = createAIProvider({
-    provider: env.aiProvider,
-    anthropicApiKey: env.anthropicApiKey,
-    anthropicModel: env.anthropicModel,
-    openaiApiKey: env.openaiApiKey,
-    openaiBaseUrl: env.openaiBaseUrl,
-    openaiModel: env.openaiModel
-  });
+  const provider = createAIProvider();
 
   return new Worker(
     classificationQueue.name,
@@ -183,6 +177,19 @@ export function createClassifyWorker(): Worker<ClassificationJob> {
         SET status = 'CLASSIFIED', classification_id = ${classification.id}
         WHERE id = ${payload.replyItemId}
       `;
+
+      await emitEvent({
+        clientId: replyItem.client_id,
+        eventType: "reply_classified",
+        metadata: {
+          reply_item_id: payload.replyItemId,
+          classification_id: classification.id,
+          intent: validated.intent,
+          confidence,
+          routing_decision: routingDecision
+        },
+        traceId: payload.traceId ?? null
+      });
 
       if (validated.intent === "UNSUBSCRIBE") {
         await sql`

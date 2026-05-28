@@ -3,11 +3,40 @@ import {
   ClassifyInputSchema,
   ClassificationOutputSchema,
   DraftInputSchema,
-  DraftOutputSchema
+  DraftOutputSchema,
+  SignalExtractionInputSchema,
+  SignalExtractionOutputSchema,
+  SequenceInputSchema,
+  SequenceOutputSchema,
+  ObjectionInputSchema,
+  ObjectionOutputSchema,
+  AnalyticsInputSchema,
+  AnalyticsOutputSchema
+} from "@krionics/schema";
+import type {
+  ClassifyInput,
+  ClassificationOutput,
+  DraftInput,
+  DraftOutput,
+  SignalExtractionInput,
+  SignalExtractionOutput,
+  SequenceInput,
+  SequenceOutput,
+  ObjectionInput,
+  ObjectionOutput,
+  AnalyticsInput,
+  AnalyticsOutput
 } from "@krionics/schema";
 import { AIProviderError } from "./errors.js";
 import type { AIProvider } from "./types.js";
-import type { ClassifyInput, ClassificationOutput, DraftInput, DraftOutput } from "@krionics/schema";
+import {
+  classifyPrompt,
+  draftPrompt,
+  signalExtractionPrompt,
+  sequencePrompt,
+  objectionPrompt,
+  analyticsPrompt
+} from "./prompt-builder.js";
 
 type OpenAIProviderOptions = {
   apiKey: string;
@@ -15,58 +44,22 @@ type OpenAIProviderOptions = {
   baseURL?: string;
 };
 
-const CLASSIFY_SYSTEM_PROMPT =
-  "You classify inbound replies for a B2B outbound system. Return ONLY valid JSON.";
-
-const DRAFT_SYSTEM_PROMPT =
-  "You draft concise replies for a B2B outbound system. Return ONLY valid JSON.";
-
-function buildClassifyPrompt(input: ClassifyInput): string {
-  return [
-    "Classify the reply and return JSON with intent, confidence, reasoning, sentiment_score, urgency_score, buying_signals, objection_type.",
-    `Reply: ${input.reply_body}`,
-    `Original Subject: ${input.original_subject ?? ""}`,
-    `Original Body: ${input.original_body}`,
-    `From: ${input.from_email}`,
-    "Client Context:",
-    `Company: ${input.client_context.company_name}`,
-    `Service: ${input.client_context.service_description}`,
-    `ICP: ${input.client_context.icp_description}`
-  ].join("\n");
-}
-
-function buildDraftPrompt(input: DraftInput): string {
-  return [
-    "Generate a reply draft and return JSON with subject and body.",
-    `Intent: ${input.intent}`,
-    `Classification Reasoning: ${input.classification_reasoning}`,
-    `Reply: ${input.reply_body}`,
-    `Original Body: ${input.original_body}`,
-    "Client Context:",
-    `Company: ${input.client_context.company_name}`,
-    `Sales Lead: ${input.client_context.sales_lead_name}`,
-    `Service: ${input.client_context.service_description}`,
-    `Calendly: ${input.client_context.calendly_link}`
-  ].join("\n");
-}
-
 function parseAndValidate<T>(
   rawText: string,
-  schema: { safeParse: (value: unknown) => { success: true; data: T } | { success: false; error: { message: string } } },
+  schema: { safeParse: (v: unknown) => { success: true; data: T } | { success: false; error: { message: string } } },
   provider: string
 ): T {
   let parsed: unknown;
   try {
-    parsed = JSON.parse(rawText);
+    const trimmed = rawText.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "").trim();
+    parsed = JSON.parse(trimmed);
   } catch (error) {
     throw new AIProviderError(provider, "INVALID_JSON", "Provider returned invalid JSON", false, error);
   }
-
   const result = schema.safeParse(parsed);
   if (!result.success) {
     throw new AIProviderError(provider, "VALIDATION_FAILED", result.error.message, false);
   }
-
   return result.data;
 }
 
@@ -79,57 +72,72 @@ export class OpenAIProvider implements AIProvider {
     this.model = options.model;
   }
 
-  async classify(input: ClassifyInput): Promise<ClassificationOutput> {
-    const validatedInput = ClassifyInputSchema.parse(input);
-
+  private async call(
+    system: string,
+    user: string,
+    temperature = 0,
+    maxTokens = 1024
+  ): Promise<string> {
     try {
       const response = await this.client.chat.completions.create({
         model: this.model,
-        temperature: 0,
+        temperature,
+        max_tokens: maxTokens,
         messages: [
-          { role: "system", content: CLASSIFY_SYSTEM_PROMPT },
-          { role: "user", content: buildClassifyPrompt(validatedInput) }
+          { role: "system", content: system },
+          { role: "user", content: user }
         ]
       });
-
       const text = response.choices[0]?.message?.content ?? "";
       if (!text) {
         throw new AIProviderError("openai", "EMPTY_RESPONSE", "OpenAI response had no text content", false);
       }
-
-      return parseAndValidate(text, ClassificationOutputSchema, "openai");
+      return text;
     } catch (error) {
-      if (error instanceof AIProviderError) {
-        throw error;
-      }
+      if (error instanceof AIProviderError) throw error;
       throw new AIProviderError("openai", "API_ERROR", "OpenAI request failed", true, error);
     }
   }
 
+  async classify(input: ClassifyInput): Promise<ClassificationOutput> {
+    const validated = ClassifyInputSchema.parse(input);
+    const { system, user } = classifyPrompt(validated);
+    const text = await this.call(system, user, 0, 1024);
+    return parseAndValidate(text, ClassificationOutputSchema, "openai");
+  }
+
   async generateDraft(input: DraftInput): Promise<DraftOutput> {
-    const validatedInput = DraftInputSchema.parse(input);
+    const validated = DraftInputSchema.parse(input);
+    const { system, user } = draftPrompt(validated);
+    const text = await this.call(system, user, 0.3, 1024);
+    return parseAndValidate(text, DraftOutputSchema, "openai");
+  }
 
-    try {
-      const response = await this.client.chat.completions.create({
-        model: this.model,
-        temperature: 0.3,
-        messages: [
-          { role: "system", content: DRAFT_SYSTEM_PROMPT },
-          { role: "user", content: buildDraftPrompt(validatedInput) }
-        ]
-      });
+  async extractSignals(input: SignalExtractionInput): Promise<SignalExtractionOutput> {
+    const validated = SignalExtractionInputSchema.parse(input);
+    const { system, user } = signalExtractionPrompt(validated);
+    const text = await this.call(system, user, 0, 1024);
+    return parseAndValidate(text, SignalExtractionOutputSchema, "openai");
+  }
 
-      const text = response.choices[0]?.message?.content ?? "";
-      if (!text) {
-        throw new AIProviderError("openai", "EMPTY_RESPONSE", "OpenAI response had no text content", false);
-      }
+  async generateSequence(input: SequenceInput): Promise<SequenceOutput> {
+    const validated = SequenceInputSchema.parse(input);
+    const { system, user } = sequencePrompt(validated);
+    const text = await this.call(system, user, 0.4, 4096);
+    return parseAndValidate(text, SequenceOutputSchema, "openai");
+  }
 
-      return parseAndValidate(text, DraftOutputSchema, "openai");
-    } catch (error) {
-      if (error instanceof AIProviderError) {
-        throw error;
-      }
-      throw new AIProviderError("openai", "API_ERROR", "OpenAI request failed", true, error);
-    }
+  async analyzeObjection(input: ObjectionInput): Promise<ObjectionOutput> {
+    const validated = ObjectionInputSchema.parse(input);
+    const { system, user } = objectionPrompt(validated);
+    const text = await this.call(system, user, 0, 1024);
+    return parseAndValidate(text, ObjectionOutputSchema, "openai");
+  }
+
+  async analyzePerformance(input: AnalyticsInput): Promise<AnalyticsOutput> {
+    const validated = AnalyticsInputSchema.parse(input);
+    const { system, user } = analyticsPrompt(validated);
+    const text = await this.call(system, user, 0, 2048);
+    return parseAndValidate(text, AnalyticsOutputSchema, "openai");
   }
 }

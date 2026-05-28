@@ -5,6 +5,7 @@ import { DraftOutputSchema } from "@krionics/schema";
 import { sql } from "../db.js";
 import { draftQueue, reviewDispatchQueue } from "../queues.js";
 import { getEnv } from "../env.js";
+import { emitEvent } from "../emit-event.js";
 
 const DraftJobSchema = z.object({
   replyItemId: z.string().uuid(),
@@ -30,14 +31,7 @@ async function loadConfig(keys: string[]): Promise<Record<string, string>> {
 
 export function createDraftWorker(): Worker<DraftJob> {
   const env = getEnv();
-  const provider = createAIProvider({
-    provider: env.aiProvider,
-    anthropicApiKey: env.anthropicApiKey,
-    anthropicModel: env.anthropicModel,
-    openaiApiKey: env.openaiApiKey,
-    openaiBaseUrl: env.openaiBaseUrl,
-    openaiModel: env.openaiModel
-  });
+  const provider = createAIProvider();
 
   return new Worker(
     draftQueue.name,
@@ -182,6 +176,20 @@ export function createDraftWorker(): Worker<DraftJob> {
         SET status = 'PENDING_REVIEW', draft_id = ${draft.id}
         WHERE id = ${payload.replyItemId}
       `;
+
+      await emitEvent({
+        clientId: replyItem.client_id,
+        leadId: replyItem.lead_id,
+        eventType: "draft_generated",
+        metadata: {
+          reply_item_id: payload.replyItemId,
+          draft_id: draft.id,
+          classification_id: payload.classificationId,
+          generation_ms: durationMs,
+          model_used: modelUsed
+        },
+        traceId: payload.traceId ?? null
+      });
 
       await reviewDispatchQueue.add("review_dispatch", {
         replyItemId: payload.replyItemId,

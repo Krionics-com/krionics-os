@@ -39,6 +39,20 @@ Table groups
 - `suppression_list` — global or per-client; INSERT restricted to service_role via RLS.
 - `idempotency_keys` — 48h TTL; cleaned by `cleanup_expired_idempotency_keys()` trigger (cron target).
 
+**Reply Orchestration Extension** (migrations 006–015, added 2026-05-23)
+- `enriched_leads` — structured Clay output per lead: buying_signals[], personalization_hooks[], icp_fit_score, tech_stack[], hiring_signals[], company_growth_signals[]. Supersedes the `clay_enrichment` JSONB blob on `leads`.
+- `events` — immutable system event log partitioned by month (202605–202705+); trace_id + parent_event_id for full workflow tracing; append-only.
+- `lead_state_history` — state transition audit trail; from_state/to_state, triggered_by_event_id, duration_in_state_ms; never updated.
+- `reply_policies` — per-client, per-intent automation routing decisions: auto_send | draft_only | escalate | suppress; confidence_threshold override.
+- `timing_rules` — per-client, per-intent response delay windows (min/max minutes); business hours enforcement; prospect timezone awareness.
+- `response_queue` — pending outbound responses; scheduled_send_at, queue_type (immediate | delayed | approval | nurture), send_attempts.
+
+Column additions to existing tables (same migration batch):
+- `clients`: reply_processing_enabled BOOLEAN, auto_send_enabled BOOLEAN
+- `leads`: thread_id TEXT UNIQUE (Instantly thread), assigned_to_operator_id UUID, routing_policy, first_reply_at, first_booking_link_sent_at, status_reason
+- `raw_replies`: client_id, thread_id, email_sequence_number, classification_status, classification_error, processed_at
+- `reply_drafts`: intent_classified_as, includes_booking_link, booking_link_url, quality_flags TEXT[], confidence FLOAT, approval_notes, send_status, send_error
+
 Key design decisions
 - Circular FK resolution: reply_items columns (classification_id, draft_id, etc.) are created nullable with no constraint in migration 007; each downstream table migration (008–011) issues `ALTER TABLE reply_items ADD CONSTRAINT ... FOREIGN KEY ...` after the referenced table exists.
 - Partitioned tables use composite PKs `(id, occurred_at)` / `(id, created_at)` required by Postgres for partition-pruning.

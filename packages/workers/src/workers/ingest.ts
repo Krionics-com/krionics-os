@@ -3,6 +3,7 @@ import { z } from "zod";
 import { sql } from "../db.js";
 import { classificationQueue, ingestQueue } from "../queues.js";
 import { sha256 } from "../utils.js";
+import { emitEvent } from "../emit-event.js";
 
 const InstantlyWebhookSchema = z.object({
   reply_id: z.string().min(1),
@@ -129,6 +130,20 @@ export function createIngestWorker(): Worker<InstantlyWebhookJob> {
         traceId: result.traceId,
         originalBody: payload.original_body ?? null,
         originalSubject: payload.original_subject ?? null
+      });
+
+      await emitEvent({
+        clientId: campaign.client_id,
+        leadId: lead.id,
+        campaignId: campaign.id,
+        eventType: "reply_received",
+        metadata: {
+          reply_item_id: result.replyItemId,
+          raw_reply_id: result.rawReplyId,
+          from_email: payload.from_email,
+          subject: payload.subject ?? null
+        },
+        traceId: result.traceId
       });
 
       return { status: "ingested", replyItemId: result.replyItemId };
