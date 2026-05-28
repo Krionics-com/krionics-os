@@ -4,6 +4,7 @@ import { sql } from "../db.js";
 import { crmSyncQueue } from "../queues.js";
 import { emitEvent } from "../emit-event.js";
 import { createCRMProvider, type CRMType } from "../clients/crm/factory.js";
+import { getFeatureFlag } from "../config.js";
 
 const CRMSyncJobSchema = z.object({
   clientId: z.string().uuid(),
@@ -33,6 +34,11 @@ export function createCRMSyncWorker(): Worker<CRMSyncJob> {
 
       if (!client) {
         throw new Error(`Missing client ${payload.clientId}`);
+      }
+
+      const crmEnabled = await getFeatureFlag(payload.clientId, "crm_sync");
+      if (!crmEnabled) {
+        return { status: "skipped", reason: "crm_sync_disabled" };
       }
 
       const crmType = (client.crm_type ?? "none") as CRMType;

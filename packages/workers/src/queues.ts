@@ -104,6 +104,37 @@ export const crmSyncQueue = new Queue("crm-sync", {
   }
 });
 
+// ── Sequence generation ──────────────────────────────────────────────────────
+
+export const sequenceGenerationQueue = new Queue("lead-sequence-generation", {
+  ...baseQueueOptions,
+  defaultJobOptions: {
+    ...baseQueueOptions.defaultJobOptions,
+    attempts: 3,
+    backoff: { type: "exponential", delay: 10000 }
+  }
+});
+
+export const instantlyPushQueue = new Queue("lead-instantly-push", {
+  ...baseQueueOptions,
+  defaultJobOptions: {
+    ...baseQueueOptions.defaultJobOptions,
+    attempts: 5,
+    backoff: { type: "exponential", delay: 5000 }
+  }
+});
+
+// ── Objection intelligence ────────────────────────────────────────────────────
+
+export const objectionIntelligenceQueue = new Queue("reply-objection-intelligence", {
+  ...baseQueueOptions,
+  defaultJobOptions: {
+    ...baseQueueOptions.defaultJobOptions,
+    attempts: 3,
+    backoff: { type: "exponential", delay: 5000 }
+  }
+});
+
 // ── Analytics ────────────────────────────────────────────────────────────────
 
 export const analyticsAggregateQueue = new Queue("analytics-aggregate", {

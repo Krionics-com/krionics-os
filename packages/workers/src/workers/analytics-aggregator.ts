@@ -3,6 +3,7 @@ import { z } from "zod";
 import { sql } from "../db.js";
 import { analyticsAggregateQueue, analyticsIntelligenceQueue } from "../queues.js";
 import { emitEvent } from "../emit-event.js";
+import { getFeatureFlag, getGlobalConfig } from "../config.js";
 
 const AggregateJobSchema = z.object({
   clientId: z.string().uuid().optional(),
@@ -36,6 +37,8 @@ export function createAnalyticsAggregatorWorker(): Worker<AggregateJob> {
       const results: Array<{ clientId: string; snapshotId: string }> = [];
 
       for (const client of clients) {
+        const analyticsEnabled = await getFeatureFlag(client.id, "analytics");
+        if (!analyticsEnabled) continue;
         const snapshot = await aggregateForClient(
           client.id,
           periodStart,

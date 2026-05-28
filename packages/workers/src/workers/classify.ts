@@ -3,10 +3,11 @@ import { z } from "zod";
 import { createAIProvider } from "@krionics/ai-provider";
 import { ClassificationOutputSchema } from "@krionics/schema";
 import { sql } from "../db.js";
-import { classificationQueue, draftQueue, reviewDispatchQueue } from "../queues.js";
+import { classificationQueue, draftQueue, reviewDispatchQueue, objectionIntelligenceQueue } from "../queues.js";
 import { getEnv } from "../env.js";
 import { sentimentFromScore, urgencyFromScore } from "../utils.js";
 import { emitEvent } from "../emit-event.js";
+import { logAIInvocation, estimateCostMicro } from "../log-ai-invocation.js";
 
 const ClassificationJobSchema = z.object({
   replyItemId: z.string().uuid(),
@@ -105,21 +106,44 @@ export function createClassifyWorker(): Worker<ClassificationJob> {
       const originalBody = payload.originalBody ?? (rawReply.raw_payload as { original_body?: string } | null)?.original_body ?? rawReply.body_text;
       const originalSubject = payload.originalSubject ?? rawReply.subject;
 
+      const traceId = payload.traceId ?? crypto.randomUUID();
       const start = Date.now();
-      const output = await provider.classify({
-        reply_body: rawReply.body_text,
-        original_body: originalBody,
-        original_subject: originalSubject ?? null,
-        from_email: rawReply.from_email,
-        client_context: {
-          company_name: client.company_name,
-          service_description: client.service_description ?? "",
-          icp_description: client.icp_description ?? ""
-        }
-      });
+      let output: Awaited<ReturnType<typeof provider.classify>>;
+      let classifyError: Error | undefined;
+      try {
+        output = await provider.classify({
+          reply_body: rawReply.body_text,
+          original_body: originalBody,
+          original_subject: originalSubject ?? null,
+          from_email: rawReply.from_email,
+          client_context: {
+            company_name: client.company_name,
+            service_description: client.service_description ?? "",
+            icp_description: client.icp_description ?? ""
+          }
+        });
+      } catch (err) {
+        classifyError = err instanceof Error ? err : new Error(String(err));
+        const durationMs = Date.now() - start;
+        await logAIInvocation({
+          clientId: replyItem.client_id, invocationType: "reply_classification",
+          traceId, entityType: "reply", entityId: payload.replyItemId,
+          model: modelUsed, latencyMs: durationMs,
+          success: false, errorCode: classifyError.message.slice(0, 100)
+        });
+        throw classifyError;
+      }
       const durationMs = Date.now() - start;
 
       const validated = ClassificationOutputSchema.parse(output);
+
+      await logAIInvocation({
+        clientId: replyItem.client_id, invocationType: "reply_classification",
+        traceId, entityType: "reply", entityId: payload.replyItemId,
+        model: modelUsed, latencyMs: durationMs,
+        success: true, validatedOutput: validated, validationPassed: true,
+        costUsdMicro: estimateCostMicro(modelUsed, 500, 200)
+      });
       const confidence = Number(validated.confidence.toFixed(3));
       const sentiment = sentimentFromScore(validated.sentiment_score);
       const urgency = urgencyFromScore(validated.urgency_score);
@@ -249,6 +273,16 @@ export function createClassifyWorker(): Worker<ClassificationJob> {
           WHERE id = ${payload.replyItemId}
         `;
         return { status: "suppressed_hostile" };
+      }
+
+      // Fire objection intelligence analysis in parallel for OBJECTION replies
+      if (validated.intent === "OBJECTION") {
+        await objectionIntelligenceQueue.add("analyze_objection", {
+          replyItemId: payload.replyItemId,
+          classificationId: classification.id,
+          clientId: replyItem.client_id,
+          traceId: payload.traceId ?? null
+        });
       }
 
       if (requiresDraft) {

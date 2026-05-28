@@ -4,6 +4,7 @@ import { createAIProvider } from "@krionics/ai-provider";
 import { sql } from "../db.js";
 import { analyticsIntelligenceQueue } from "../queues.js";
 import { emitEvent } from "../emit-event.js";
+import { logAIInvocation, estimateCostMicro } from "../log-ai-invocation.js";
 
 const IntelligenceJobSchema = z.object({
   snapshotId: z.string().uuid(),
@@ -59,6 +60,7 @@ export function createAnalyticsIntelligenceWorker(): Worker<IntelligenceJob> {
         throw new Error(`Missing client ${payload.clientId}`);
       }
 
+      const analyticsTraceId = crypto.randomUUID();
       const start = Date.now();
       const output = await provider.analyzePerformance({
         period_start: new Date(snapshot.period_start).toISOString(),
@@ -80,6 +82,14 @@ export function createAnalyticsIntelligenceWorker(): Worker<IntelligenceJob> {
         }
       });
       const durationMs = Date.now() - start;
+
+      await logAIInvocation({
+        clientId: payload.clientId, invocationType: "analytics_intelligence",
+        traceId: analyticsTraceId, entityType: "campaign", entityId: payload.snapshotId,
+        model: "claude-sonnet-4-20250514", latencyMs: durationMs,
+        success: true, validatedOutput: output, validationPassed: true,
+        costUsdMicro: estimateCostMicro("claude-sonnet-4-20250514", 1500, 800)
+      });
 
       await sql`
         UPDATE analytics_snapshots
