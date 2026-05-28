@@ -125,6 +125,12 @@ export function BusinessTab({ client, editing, draft, onChange }: BusinessTabPro
           <Input id="bi-sales-lead" value={d.sales_lead_name ?? ""} onChange={(e) => onChange("sales_lead_name", e.target.value)} />
         ) : <ViewValue value={d.sales_lead_name} />}
       </Field>
+
+      <Field label="Instantly Campaign ID" id="bi-instantly-campaign">
+        {editing ? (
+          <Input id="bi-instantly-campaign" placeholder="e.g. camp_abc123" value={d.instantly_campaign_id ?? ""} onChange={(e) => onChange("instantly_campaign_id", e.target.value || null)} />
+        ) : <ViewValue value={d.instantly_campaign_id} />}
+      </Field>
     </div>
   );
 }

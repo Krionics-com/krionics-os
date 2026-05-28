@@ -24,6 +24,8 @@ import {
   PhoneCall,
   Sliders,
   Flag,
+  UserCheck,
+  CheckSquare,
 } from "lucide-react";
 import useSWR from "swr";
 
@@ -32,8 +34,11 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Review Queue", href: "/dashboard/review", icon: Inbox },
+  { name: "Leads", href: "/dashboard/leads", icon: UserCheck },
   { name: "Campaigns", href: "/dashboard/campaigns", icon: Zap },
+  { name: "Sequences", href: "/dashboard/sequences", icon: Mail },
   { name: "Clients", href: "/dashboard/clients", icon: Building2 },
+  { name: "Onboarding", href: "/dashboard/onboarding", icon: CheckSquare, adminOnly: true },
   { name: "Queues", href: "/dashboard/queues", icon: Activity },
   { name: "DLQ", href: "/dashboard/dlq", icon: AlertTriangle },
   { name: "AI Prompts", href: "/dashboard/ai/prompts", icon: Sparkles },

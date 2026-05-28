@@ -17,12 +17,15 @@ import { CrmTab } from "@/components/client-tabs/crm-tab";
 import { SlackTab } from "@/components/client-tabs/slack-tab";
 import { AiTab } from "@/components/client-tabs/ai-tab";
 import { TeamTab } from "@/components/client-tabs/team-tab";
+import { ReplyPoliciesTab } from "@/components/client-tabs/reply-policies-tab";
+import { TimingRulesTab } from "@/components/client-tabs/timing-rules-tab";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 const TABS = [
   "Overview", "Business Info", "ICP & Positioning",
   "Automation", "CRM Config", "Slack Config", "AI Config", "Team",
+  "Reply Policies", "Timing Rules",
 ];
 
 function statusVariant(status: string): "default" | "secondary" | "destructive" | "outline" {
@@ -345,8 +348,14 @@ export default function ClientProfilePage({
             {/* Team */}
             {activeTab === 7 && <TeamTab clientId={client.id} />}
 
+            {/* Reply Policies */}
+            {activeTab === 8 && <ReplyPoliciesTab clientSlug={slug} isAdmin={isAdmin} />}
+
+            {/* Timing Rules */}
+            {activeTab === 9 && <TimingRulesTab clientSlug={slug} isAdmin={isAdmin} />}
+
             {/* Save button at bottom of editable tabs */}
-            {editing && activeTab > 0 && activeTab < 7 && (
+            {editing && activeTab > 0 && activeTab < 8 && (
               <div className="flex justify-end gap-2 mt-6 pt-4 border-t border-border">
                 <Button variant="ghost" size="sm" onClick={cancelEdit} disabled={saving}>
                   Cancel

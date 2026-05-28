@@ -17,6 +17,7 @@ import {
   TableHeader, TableRow,
 } from "@/components/ui/table";
 import { CampaignDuplicateModal } from "@/components/campaign-duplicate-modal";
+import { CampaignCreateWizard } from "@/components/campaign-create-wizard";
 import { toast } from "sonner";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
@@ -98,6 +99,7 @@ export default function CampaignsPage() {
     id: string;
     name: string;
   } | null>(null);
+  const [showCreateWizard, setShowCreateWizard] = useState(false);
 
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
@@ -176,6 +178,13 @@ export default function CampaignsPage() {
 
   return (
     <>
+      {showCreateWizard && (
+        <CampaignCreateWizard
+          onClose={() => setShowCreateWizard(false)}
+          onCreated={() => { setShowCreateWizard(false); mutate(); }}
+        />
+      )}
+
       <CampaignDuplicateModal
         open={!!duplicateTarget}
         onClose={() => setDuplicateTarget(null)}
@@ -230,9 +239,14 @@ export default function CampaignsPage() {
               </p>
             </div>
           </div>
-          <Button variant="outline" size="sm" onClick={() => mutate()}>
-            <RefreshCw className="h-4 w-4 mr-1" /> Refresh
-          </Button>
+          <div className="flex gap-2">
+            <Button size="sm" onClick={() => setShowCreateWizard(true)}>
+              <Plus className="h-4 w-4 mr-1" /> New Campaign
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => mutate()}>
+              <RefreshCw className="h-4 w-4 mr-1" /> Refresh
+            </Button>
+          </div>
         </div>
 
         {/* Filters */}
