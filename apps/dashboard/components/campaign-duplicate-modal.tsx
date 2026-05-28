@@ -65,7 +65,7 @@ export function CampaignDuplicateModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/85"
+        className="absolute inset-0 bg-black"
         onClick={onClose}
       />
       {/* Modal */}

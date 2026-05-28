@@ -664,7 +664,7 @@ export function ClientOnboardingWizard({ open, onClose }: { open: boolean; onClo
   return (
     <div className="fixed inset-0 z-50 flex">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/85" onClick={!submitting ? onClose : undefined} />
+      <div className="absolute inset-0 bg-black" onClick={!submitting ? onClose : undefined} />
 
       {/* Wizard panel */}
       <div className="relative z-10 flex w-full max-w-5xl mx-auto my-6 rounded-2xl border border-border bg-background shadow-2xl overflow-hidden">
