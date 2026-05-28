@@ -20,6 +20,7 @@ export async function GET(req: NextRequest, { params }: Params) {
     const [client] = await sql<any[]>`
       SELECT
         c.*,
+        c.calendly_link AS calcom_link,
         COUNT(DISTINCT ca.id) FILTER (WHERE ca.status = 'active')::int AS active_campaigns,
         COALESCE(SUM(ca.emails_sent), 0)::int AS total_emails_sent,
         COALESCE(
@@ -118,9 +119,15 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       "service_type", "status", "tier", "automation_level",
       "mrr_usd", "setup_fee_usd", "contract_start", "contract_end",
       "crm_type", "sales_lead_name", "service_description",
-      "icp_description", "positioning_statement", "calcom_link",
+      "icp_description", "positioning_statement", "calendly_link",
       "slack_webhook_url", "slack_channel_id", "instantly_campaign_id",
     ];
+
+    // Accept calcom_link from the frontend and map it to the DB column name
+    if ("calcom_link" in scalars) {
+      scalars.calendly_link = scalars.calcom_link;
+      delete scalars.calcom_link;
+    }
 
     const updates: Record<string, any> = {};
     for (const key of allowedScalars) {
@@ -142,7 +149,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     }
 
     // Fetch updated client
-    const [updated] = await sql<any[]>`SELECT * FROM clients WHERE slug = ${slug}`;
+    const [updated] = await sql<any[]>`SELECT *, calendly_link AS calcom_link FROM clients WHERE slug = ${slug}`;
     return NextResponse.json({ client: updated });
   } catch (err: any) {
     console.error(`Client PATCH error [${slug}]:`, err);

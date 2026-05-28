@@ -136,7 +136,7 @@ export default function ClientsPage() {
       {/* Confirm dialog */}
       {confirmAction && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black" onClick={() => setConfirmAction(null)} />
+          <div className="absolute inset-0 bg-black/85" onClick={() => setConfirmAction(null)} />
           <div className="relative z-10 w-full max-w-sm rounded-xl border border-border bg-card p-6 shadow-xl">
             <h3 className="font-heading text-lg font-semibold mb-2">
               {confirmAction.action === "pause"
