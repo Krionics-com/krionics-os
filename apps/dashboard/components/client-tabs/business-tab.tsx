@@ -112,11 +112,11 @@ export function BusinessTab({ client, editing, draft, onChange }: BusinessTabPro
         ) : <ViewValue value={d.contract_end?.slice(0, 10)} />}
       </Field>
 
-      <Field label="Calendly Link" id="bi-calendly">
+      <Field label="Cal.com Booking Link" id="bi-calcom">
         {editing ? (
-          <Input id="bi-calendly" type="url" value={d.calendly_link ?? ""} onChange={(e) => onChange("calendly_link", e.target.value)} />
-        ) : d.calendly_link
-            ? <a href={d.calendly_link} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline">{d.calendly_link}</a>
+          <Input id="bi-calcom" type="url" value={d.calcom_link ?? ""} onChange={(e) => onChange("calcom_link", e.target.value)} />
+        ) : d.calcom_link
+            ? <a href={d.calcom_link} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline">{d.calcom_link}</a>
             : <ViewValue value={undefined} />}
       </Field>
 

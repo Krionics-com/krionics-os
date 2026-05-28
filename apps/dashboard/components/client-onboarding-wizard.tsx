@@ -58,7 +58,7 @@ interface WizardData {
   // Step 5
   crm_type: string;
   crm_webhook_url: string;
-  calendly_link: string;
+  calcom_link: string;
   slack_webhook_url: string;
   slack_channel_id: string;
   // Step 6
@@ -94,7 +94,7 @@ const EMPTY: WizardData = {
   selected_domain_names: [],
   crm_type: "none",
   crm_webhook_url: "",
-  calendly_link: "",
+  calcom_link: "",
   slack_webhook_url: "",
   slack_channel_id: "",
   create_campaign: false,
@@ -397,8 +397,8 @@ function Step5({ d, set }: { d: WizardData; set: (p: Partial<WizardData>) => voi
           <Input id="w-crm-wh" value={d.crm_webhook_url} placeholder="https://…" onChange={(e) => set({ crm_webhook_url: e.target.value })} />
         </Field>
       )}
-      <Field label="Calendly Link" id="w-cal" hint="Booking link embedded in AI replies">
-        <Input id="w-cal" value={d.calendly_link} placeholder="https://calendly.com/…" onChange={(e) => set({ calendly_link: e.target.value })} />
+      <Field label="Cal.com Booking Link" id="w-cal" hint="Booking link embedded in AI replies">
+        <Input id="w-cal" value={d.calcom_link} placeholder="https://cal.com/…" onChange={(e) => set({ calcom_link: e.target.value })} />
       </Field>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <Field label="Slack Webhook URL" id="w-slack-wh">
@@ -587,7 +587,7 @@ export function ClientOnboardingWizard({ open, onClose }: { open: boolean; onClo
         contract_end: data.contract_end || null,
         crm_type: data.crm_type !== "none" ? data.crm_type : null,
         crm_config: data.crm_webhook_url ? { webhook_url: data.crm_webhook_url } : null,
-        calendly_link: data.calendly_link || null,
+        calcom_link: data.calcom_link || null,
         slack_webhook_url: data.slack_webhook_url || null,
         slack_channel_id: data.slack_channel_id || null,
         automation_level: data.automation_level,
