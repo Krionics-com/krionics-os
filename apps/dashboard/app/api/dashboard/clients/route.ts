@@ -97,11 +97,23 @@ export async function POST(req: NextRequest) {
   }
 
   const {
+    // Step 1 — basics
     company_name, contact_email, contact_name, slug, timezone,
-    service_type, service_description, positioning_statement, sales_lead_name,
-    icp_description, mrr_usd, setup_fee_usd, contract_start, contract_end,
+    website_url, industry, contact_phone, contact_role,
+    service_type, tier, mrr_usd, setup_fee_usd, contract_start, contract_end,
+    // Step 2 — business context
+    company_description, service_description, positioning_statement,
+    value_proposition, sales_lead_name,
+    // Step 3 — ICP (stored in config JSONB)
+    icp_description,
+    // Step 5 — integrations
     crm_type, crm_config, calcom_link, slack_webhook_url, slack_channel_id,
-    automation_level, tier, config,
+    // Step 6 — AI
+    automation_level, ai_tone, ai_knowledge_base, forbidden_claims,
+    // Step 4 — infrastructure
+    infrastructure_strategy,
+    // Config JSONB (ICP targets, team, infra details, etc.)
+    config,
   } = body;
 
   if (!company_name || !contact_email || !contact_name || !slug) {
@@ -123,10 +135,13 @@ export async function POST(req: NextRequest) {
     const [client] = await sql<any[]>`
       INSERT INTO clients (
         company_name, contact_email, contact_name, slug, timezone,
-        service_type, service_description, positioning_statement, sales_lead_name,
-        icp_description, mrr_usd, setup_fee_usd, contract_start, contract_end,
+        website_url, industry, contact_phone, contact_role,
+        service_type, tier, mrr_usd, setup_fee_usd, contract_start, contract_end,
+        company_description, service_description, positioning_statement,
+        value_proposition, sales_lead_name, icp_description,
         crm_type, crm_config, calendly_link, slack_webhook_url, slack_channel_id,
-        automation_level, tier, config
+        automation_level, ai_tone, ai_knowledge_base, forbidden_claims,
+        infrastructure_strategy, config
       )
       VALUES (
         ${company_name},
@@ -134,22 +149,32 @@ export async function POST(req: NextRequest) {
         ${contact_name},
         ${slug},
         ${timezone ?? "America/New_York"},
+        ${website_url ?? null},
+        ${industry ?? null},
+        ${contact_phone ?? null},
+        ${contact_role ?? null},
         ${service_type ?? null},
-        ${service_description ?? null},
-        ${positioning_statement ?? null},
-        ${sales_lead_name ?? null},
-        ${icp_description ?? null},
+        ${tier ?? "growth"},
         ${mrr_usd ?? null},
         ${setup_fee_usd ?? null},
         ${contract_start ?? null},
         ${contract_end ?? null},
+        ${company_description ?? null},
+        ${service_description ?? null},
+        ${positioning_statement ?? null},
+        ${value_proposition ?? null},
+        ${sales_lead_name ?? null},
+        ${icp_description ?? null},
         ${crm_type ?? null},
         ${crm_config ? JSON.stringify(crm_config) : null},
         ${calcom_link ?? null},
         ${slack_webhook_url ?? null},
         ${slack_channel_id ?? null},
         ${automation_level ?? 1},
-        ${tier ?? "growth"},
+        ${ai_tone ?? "professional"},
+        ${ai_knowledge_base ?? null},
+        ${forbidden_claims ?? null},
+        ${infrastructure_strategy ?? null},
         ${config ? JSON.stringify(config) : null}
       )
       RETURNING *
