@@ -131,7 +131,7 @@ export default function ClientsPage() {
 
   return (
     <>
-      <ClientOnboardingWizard open={showCreate} onClose={() => setShowCreate(false)} />
+      {showCreate && <ClientOnboardingWizard open={showCreate} onClose={() => setShowCreate(false)} />}
 
       {/* Confirm dialog */}
       {confirmAction && (

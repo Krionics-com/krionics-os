@@ -289,8 +289,8 @@ function Step3({ d, set }: { d: WizardData; set: (p: Partial<WizardData>) => voi
 }
 
 function Step4({ d, set }: { d: WizardData; set: (p: Partial<WizardData>) => void }) {
-  const { data: inboxData } = useSWR("/api/dashboard/infra/inboxes?limit=100", fetcher);
-  const { data: domainData } = useSWR("/api/dashboard/infra/domains?limit=100", fetcher);
+  const { data: inboxData, isLoading: inboxLoading } = useSWR("/api/dashboard/infra/inboxes?limit=100", fetcher);
+  const { data: domainData, isLoading: domainLoading } = useSWR("/api/dashboard/infra/domains?limit=100", fetcher);
 
   const inboxes: any[] = inboxData?.inboxes ?? [];
   const domains: any[] = domainData?.domains ?? [];
@@ -313,20 +313,24 @@ function Step4({ d, set }: { d: WizardData; set: (p: Partial<WizardData>) => voi
       <div>
         <h4 className="text-sm font-semibold mb-1">Available Inboxes</h4>
         <p className="text-xs text-muted-foreground mb-3">Select inboxes to assign to this client. Only unassigned inboxes are shown.</p>
-        {unassignedInboxes.length === 0 ? (
+        {inboxLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {[0, 1, 2, 3].map((i) => <div key={i} className="h-14 rounded-lg border border-border bg-muted animate-pulse" />)}
+          </div>
+        ) : unassignedInboxes.length === 0 ? (
           <p className="text-sm text-muted-foreground italic">No unassigned inboxes available.</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-            {unassignedInboxes.map((inbox) => {
+            {unassignedInboxes.map((inbox, idx) => {
               const selected = d.selected_inbox_emails.includes(inbox.email);
               return (
                 <button
-                  key={inbox.email}
+                  key={inbox.email ?? `inbox-${idx}`}
                   type="button"
                   onClick={() => toggleInbox(inbox.email)}
                   className={cn(
                     "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm text-left transition-colors",
-                    selected ? "border-primary bg-primary/5 text-primary" : "border-border hover:border-primary/50"
+                    selected ? "border-primary bg-primary/10 text-primary" : "border-border hover:border-primary/50"
                   )}
                 >
                   <div className={cn("h-4 w-4 rounded border flex items-center justify-center flex-shrink-0", selected ? "bg-primary border-primary" : "border-muted-foreground")}>
@@ -346,20 +350,24 @@ function Step4({ d, set }: { d: WizardData; set: (p: Partial<WizardData>) => voi
       <div>
         <h4 className="text-sm font-semibold mb-1">Available Domains</h4>
         <p className="text-xs text-muted-foreground mb-3">Select domains to assign to this client.</p>
-        {unassignedDomains.length === 0 ? (
+        {domainLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {[0, 1, 2].map((i) => <div key={i} className="h-10 rounded-lg border border-border bg-muted animate-pulse" />)}
+          </div>
+        ) : unassignedDomains.length === 0 ? (
           <p className="text-sm text-muted-foreground italic">No unassigned domains available.</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-            {unassignedDomains.map((domain) => {
+            {unassignedDomains.map((domain, idx) => {
               const selected = d.selected_domain_names.includes(domain.domain);
               return (
                 <button
-                  key={domain.domain}
+                  key={domain.domain ?? `domain-${idx}`}
                   type="button"
                   onClick={() => toggleDomain(domain.domain)}
                   className={cn(
                     "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm text-left transition-colors",
-                    selected ? "border-primary bg-primary/5 text-primary" : "border-border hover:border-primary/50"
+                    selected ? "border-primary bg-primary/10 text-primary" : "border-border hover:border-primary/50"
                   )}
                 >
                   <div className={cn("h-4 w-4 rounded border flex items-center justify-center flex-shrink-0", selected ? "bg-primary border-primary" : "border-muted-foreground")}>
@@ -415,7 +423,7 @@ function Step5({ d, set }: { d: WizardData; set: (p: Partial<WizardData>) => voi
 function Step6({ d, set }: { d: WizardData; set: (p: Partial<WizardData>) => void }) {
   return (
     <div className="space-y-5">
-      <div className="rounded-lg border border-border p-4 bg-muted/20">
+      <div className="rounded-lg border border-border p-4 bg-muted">
         <div className="flex items-center justify-between mb-1">
           <div>
             <p className="text-sm font-semibold">Create Initial Campaign</p>
@@ -466,7 +474,7 @@ function Step7({ d, set }: { d: WizardData; set: (p: Partial<WizardData>) => voi
           className={cn(
             "w-full flex items-start gap-3 rounded-lg border p-4 text-left transition-colors",
             d.automation_level === lvl.value
-              ? "border-primary bg-primary/5"
+              ? "border-primary bg-primary/10"
               : "border-border hover:border-primary/50"
           )}
         >
@@ -704,7 +712,7 @@ export function ClientOnboardingWizard({ open, onClose }: { open: boolean; onClo
             })}
           </nav>
           <div className="px-4 pb-4">
-            <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+            <div className="h-1.5 rounded-full bg-border overflow-hidden">
               <div
                 className="h-full bg-primary rounded-full transition-all duration-300"
                 style={{ width: `${((step + 1) / STEPS.length) * 100}%` }}
@@ -745,7 +753,7 @@ export function ClientOnboardingWizard({ open, onClose }: { open: boolean; onClo
           )}
 
           {/* Footer navigation */}
-          <div className="flex items-center justify-between px-8 py-4 border-t border-border bg-muted/20">
+          <div className="flex items-center justify-between px-8 py-4 border-t border-border bg-muted">
             <Button variant="ghost" size="sm" onClick={back} disabled={step === 0 || submitting}>
               <ChevronLeft className="h-4 w-4 mr-1" /> Back
             </Button>

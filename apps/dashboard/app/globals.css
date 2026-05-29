@@ -2,7 +2,8 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-/* Design tokens moved to :root block */
+/* Force class-based dark mode so media queries never trigger dark styles */
+@custom-variant dark (&:where(.dark, .dark *));
 
 :root {
   --background: #F5EFE0;
@@ -40,40 +41,6 @@
   --sidebar-ring: #C4521C;
 }
 
-.dark {
-  --background: #1A1A1A;
-  --foreground: #F5EFE0;
-  --card: #2A2A2A;
-  --card-foreground: #F5EFE0;
-  --popover: #2A2A2A;
-  --popover-foreground: #F5EFE0;
-  --primary: #C4521C;
-  --primary-foreground: #FFFFFF;
-  --secondary: #333333;
-  --secondary-foreground: #F5EFE0;
-  --muted: #333333;
-  --muted-foreground: #AAAAAA;
-  --accent: #333333;
-  --accent-foreground: #F5EFE0;
-  --destructive: #ff4d4f;
-  --destructive-foreground: #ffffff;
-  --border: #333333;
-  --input: #333333;
-  --ring: #C4521C;
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: #1A1A1A;
-  --sidebar-foreground: #F5EFE0;
-  --sidebar-primary: #C4521C;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #333333;
-  --sidebar-accent-foreground: #F5EFE0;
-  --sidebar-border: #333333;
-  --sidebar-ring: #C4521C;
-}
 
 @layer base {
   * {
@@ -85,7 +52,7 @@
   }
   html {
     font-family: var(--font-sans);
-    color-scheme: light;
+    color-scheme: light only;
   }
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
