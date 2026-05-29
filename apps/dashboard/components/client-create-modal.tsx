@@ -81,7 +81,7 @@ export function ClientCreateModal({ open, onClose }: ClientCreateModalProps) {
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black"
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
       />
       {/* Modal */}

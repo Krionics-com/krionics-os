@@ -663,11 +663,10 @@ export function ClientOnboardingWizard({ open, onClose }: { open: boolean; onClo
 
   return (
     <div className="fixed inset-0 z-50 flex">
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black" onClick={!submitting ? onClose : undefined} />
+      <div className="absolute inset-0 bg-card" onClick={!submitting ? onClose : undefined} />
 
       {/* Wizard panel */}
-      <div className="relative z-10 flex w-full max-w-5xl mx-auto my-6 rounded-2xl border border-border bg-background shadow-2xl overflow-hidden">
+      <div className="relative z-10 flex w-full max-w-5xl mx-auto my-6 rounded-2xl border border-border bg-white shadow-2xl overflow-hidden">
 
         {/* Left step list */}
         <div className="w-64 flex-shrink-0 bg-muted border-r border-border flex flex-col">
