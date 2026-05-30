@@ -6,7 +6,7 @@ import { useSWRConfig } from "swr";
 import useSWR from "swr";
 import {
   X, ChevronLeft, ChevronRight, Check, Building2, Briefcase,
-  Target, Server, Plug, Bot, Users, ClipboardCheck, AlertCircle,
+  Target, Server, Plug, Bot, ClipboardCheck, AlertCircle,
   CheckCircle2, Circle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -89,11 +89,6 @@ interface WizardData {
   ai_tone: string;
   ai_knowledge_base: string;
   forbidden_claims: string;
-  // Step 7 — Team Assignment
-  ae_id: string;
-  cm_id: string;
-  rr_id: string;
-  do_id: string;
 }
 
 const EMPTY: WizardData = {
@@ -120,7 +115,6 @@ const EMPTY: WizardData = {
   calcom_link: "", calcom_event_type: "", calcom_meeting_duration: "",
   slack_create_channel: false,
   automation_level: 2, ai_tone: "professional", ai_knowledge_base: "", forbidden_claims: "",
-  ae_id: "", cm_id: "", rr_id: "", do_id: "",
 };
 
 const TIMEZONES = [
@@ -161,7 +155,6 @@ const STEPS = [
   { label: "Infrastructure",     icon: Server,         description: "Domains, inboxes, and deliverability setup" },
   { label: "Integrations",       icon: Plug,           description: "HubSpot, Cal.com, and Slack connections" },
   { label: "AI Configuration",   icon: Bot,            description: "Automation level, tone, and knowledge base" },
-  { label: "Team Assignment",    icon: Users,          description: "Assign Krionics operators to this client" },
   { label: "Review & Activate",  icon: ClipboardCheck, description: "Confirm all details and activate the client" },
 ];
 
@@ -754,62 +747,18 @@ function Step6({ d, set }: { d: WizardData; set: (p: Partial<WizardData>) => voi
   );
 }
 
-// ─── Step 7: Team Assignment ──────────────────────────────────────────────────
+// ─── Step 7: Review & Activate ───────────────────────────────────────────────
 
-function Step7({ d, set }: { d: WizardData; set: (p: Partial<WizardData>) => void }) {
-  const { data, isLoading } = useSWR("/api/dashboard/operators", fetcher);
-  const operators: { id: string; name: string; email: string; role: string }[] = data?.operators ?? [];
-
-  const opOptions = [
-    { value: "", label: "Unassigned" },
-    ...operators.map((op) => ({ value: op.id, label: `${op.name} (${op.email})` })),
-  ];
-
-  if (isLoading) {
-    return (
-      <div className="space-y-4">
-        {[0, 1, 2, 3].map((i) => <div key={i} className="h-16 rounded-lg bg-muted animate-pulse" />)}
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-5">
-      <p className="text-sm text-muted-foreground">
-        Assign Krionics operators to roles for this client. Only the Account Executive is required
-        at onboarding — other assignments can be updated from the client's Team tab.
-      </p>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <SField label="Account Executive *" id="w-ae-op" value={d.ae_id}
-          onChange={(v) => set({ ae_id: v })} options={opOptions} />
-        <SField label="Campaign Manager" id="w-cm-op" value={d.cm_id}
-          onChange={(v) => set({ cm_id: v })} options={opOptions} />
-        <SField label="Reply Reviewer" id="w-rr-op" value={d.rr_id}
-          onChange={(v) => set({ rr_id: v })} options={opOptions} />
-        <SField label="Deliverability Owner" id="w-do-op" value={d.do_id}
-          onChange={(v) => set({ do_id: v })} options={opOptions} />
-      </div>
-    </div>
-  );
-}
-
-// ─── Step 8: Review & Activate ────────────────────────────────────────────────
-
-function Step8({ d, operators }: { d: WizardData; operators: { id: string; name: string }[] }) {
-  function opName(id: string) {
-    return operators.find((o) => o.id === id)?.name ?? (id || "Unassigned");
-  }
-
-  const checks: { label: string; ok: boolean }[] = [
+function Step7({ d }: { d: WizardData }) {
+  const checks: { label: string; ok: boolean; optional?: boolean }[] = [
     { label: "Company Details", ok: !!(d.company_name && d.contact_email && d.contact_name && d.contract_start) },
-    { label: "Business Context", ok: !!(d.service_description || d.company_description) },
-    { label: "ICP", ok: !!(d.icp_description || d.target_industries.length > 0) },
+    { label: "Business Context", ok: !!(d.service_description || d.company_description), optional: true },
+    { label: "ICP", ok: !!(d.icp_description || d.target_industries.length > 0), optional: true },
     { label: "Infrastructure", ok: d.infrastructure_strategy === "existing"
         ? (d.selected_inbox_emails.length > 0 || d.selected_domain_names.length > 0)
-        : !!(d.client_domains_text || d.client_inboxes_text) },
-    { label: "HubSpot", ok: d.hubspot_connected },
-    { label: "Cal.com", ok: !!d.calcom_link },
-    { label: "Team Assignment", ok: !!d.ae_id },
+        : !!(d.client_domains_text || d.client_inboxes_text), optional: true },
+    { label: "HubSpot", ok: d.hubspot_connected, optional: true },
+    { label: "Cal.com", ok: !!d.calcom_link, optional: true },
   ];
 
   const summaryRows: [string, string][] = [
@@ -829,11 +778,10 @@ function Step8({ d, operators }: { d: WizardData; operators: { id: string; name:
     ["HubSpot", d.hubspot_connected ? `Connected (${d.hubspot_portal_id || "no portal ID"})` : "Not connected"],
     ["Cal.com", d.calcom_link || "—"],
     ["Slack Channel", d.slack_create_channel ? `#client-${d.slug}` : "Not creating"],
-    ["Account Executive", opName(d.ae_id)],
-    ["Campaign Manager", opName(d.cm_id)],
+    ["Account Executive", d.account_executive || "—"],
   ];
 
-  const allRequired = checks.filter((c, i) => [0, 6].includes(i)).every((c) => c.ok);
+  const requiredOk = checks.filter((c) => !c.optional).every((c) => c.ok);
 
   return (
     <div className="space-y-6">
@@ -841,18 +789,21 @@ function Step8({ d, operators }: { d: WizardData; operators: { id: string; name:
       <div>
         <SectionTitle>Validation Checks</SectionTitle>
         <div className="mt-3 grid grid-cols-2 gap-2">
-          {checks.map(({ label, ok }) => (
+          {checks.map(({ label, ok, optional }) => (
             <div key={label} className={cn("flex items-center gap-2 rounded-lg border px-3 py-2 text-sm",
-              ok ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-border bg-muted/30 text-muted-foreground")}>
+              ok ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                 : optional ? "border-border bg-muted/30 text-muted-foreground"
+                            : "border-destructive/30 bg-destructive/5 text-destructive")}>
               {ok
                 ? <CheckCircle2 className="h-4 w-4 text-emerald-600 flex-shrink-0" />
                 : <Circle className="h-4 w-4 flex-shrink-0" />}
-              {label}
+              <span>{label}</span>
+              {optional && !ok && <span className="ml-auto text-xs opacity-60">optional</span>}
             </div>
           ))}
         </div>
-        {!allRequired && (
-          <p className="text-xs text-destructive mt-2">Company Details and Team Assignment are required to activate.</p>
+        {!requiredOk && (
+          <p className="text-xs text-destructive mt-2">Company Details must be complete to activate.</p>
         )}
       </div>
 
@@ -896,9 +847,6 @@ export function ClientOnboardingWizard({ open, onClose }: { open: boolean; onClo
   const [data, setData] = useState<WizardData>(EMPTY);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const { data: opData } = useSWR("/api/dashboard/operators", fetcher);
-  const operators: { id: string; name: string; email: string }[] = opData?.operators ?? [];
 
   if (!open) return null;
 
@@ -966,15 +914,6 @@ export function ClientOnboardingWizard({ open, onClose }: { open: boolean; onClo
         calcom_event_type: data.calcom_event_type || null,
         calcom_meeting_duration: data.calcom_meeting_duration ? Number(data.calcom_meeting_duration) : null,
         slack_channel_name: data.slack_create_channel ? `client-${data.slug}` : null,
-        // Team
-        team: {
-          account_executive_id: data.ae_id || null,
-          campaign_manager_id: data.cm_id || null,
-          reply_reviewer_id: data.rr_id || null,
-          deliverability_owner_id: data.do_id || null,
-          customer_success_owner: data.customer_success_owner || null,
-          campaign_manager_s1: data.campaign_manager_s1 || null,
-        },
       };
 
       // Derive crm_config from HubSpot data
@@ -1058,8 +997,7 @@ export function ClientOnboardingWizard({ open, onClose }: { open: boolean; onClo
     <Step4 key={3} d={data} set={set} />,
     <Step5 key={4} d={data} set={set} slug={data.slug} />,
     <Step6 key={5} d={data} set={set} />,
-    <Step7 key={6} d={data} set={set} />,
-    <Step8 key={7} d={data} operators={operators} />,
+    <Step7 key={6} d={data} />,
   ];
 
   const isLast = step === STEPS.length - 1;
