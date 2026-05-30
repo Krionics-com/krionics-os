@@ -2,8 +2,46 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-/* Force class-based dark mode so media queries never trigger dark styles */
+/*
+ * LIGHT-ONLY: Krionics OS has no dark mode.
+ * 1. @custom-variant makes dark: utilities require a .dark ancestor (never added).
+ * 2. The @media block below re-pins all CSS variables to light values so
+ *    no OS-level dark-mode preference can flip them.
+ */
 @custom-variant dark (&:where(.dark, .dark *));
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: light;
+    --background: #F5EFE0;
+    --foreground: #1A1A1A;
+    --card: #FFFFFF;
+    --card-foreground: #1A1A1A;
+    --popover: #FFFFFF;
+    --popover-foreground: #1A1A1A;
+    --primary: #C4521C;
+    --primary-foreground: #FFFFFF;
+    --secondary: #E5DDD0;
+    --secondary-foreground: #1A1A1A;
+    --muted: #E5DDD0;
+    --muted-foreground: #666666;
+    --accent: #E5DDD0;
+    --accent-foreground: #1A1A1A;
+    --destructive: #ff4d4f;
+    --destructive-foreground: #ffffff;
+    --border: #E5DDD0;
+    --input: #E5DDD0;
+    --ring: #C4521C;
+    --sidebar: #FFFFFF;
+    --sidebar-foreground: #1A1A1A;
+    --sidebar-primary: #C4521C;
+    --sidebar-primary-foreground: #FFFFFF;
+    --sidebar-accent: #E5DDD0;
+    --sidebar-accent-foreground: #1A1A1A;
+    --sidebar-border: #E5DDD0;
+    --sidebar-ring: #C4521C;
+  }
+}
 
 :root {
   --background: #F5EFE0;
