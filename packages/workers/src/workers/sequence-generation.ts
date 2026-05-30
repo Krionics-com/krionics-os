@@ -15,6 +15,22 @@ const SequenceGenerationJobSchema = z.object({
 
 type SequenceGenerationJob = z.infer<typeof SequenceGenerationJobSchema>;
 
+type ClientRow = {
+  company_name: string;
+  sales_lead_name: string | null;
+  service_description: string | null;
+  icp_description: string | null;
+  calcom_link: string | null;
+  positioning_statement: string | null;
+  value_proposition: string | null;
+  ai_knowledge_base: string | null;
+  ai_tone: string | null;
+  forbidden_claims: string | null;
+  review_mode: string;
+  sequence_config: { steps: Array<{ step: number; name: string; delay_days: number }> } | null;
+  instantly_config: { campaign_id?: string } | null;
+};
+
 export function createSequenceGenerationWorker(): Worker<SequenceGenerationJob> {
   const provider = createAIProvider();
 
@@ -53,27 +69,24 @@ export function createSequenceGenerationWorker(): Worker<SequenceGenerationJob> 
         LIMIT 1
       `;
 
-      const [client] = await sql<{
-        company_name: string;
-        sales_lead_name: string | null;
-        service_description: string | null;
-        icp_description: string | null;
-        calcom_link: string | null;
-        instantly_campaign_id: string | null;
-      }[]>`
-        SELECT company_name, sales_lead_name, service_description,
-               icp_description, calcom_link, instantly_campaign_id
-        FROM clients
-        WHERE id = ${payload.clientId}::uuid
+      const [client] = await sql<ClientRow[]>`
+        SELECT company_name, sales_lead_name, service_description, icp_description,
+               calcom_link, positioning_statement, value_proposition,
+               ai_knowledge_base, ai_tone, forbidden_claims,
+               review_mode, sequence_config, instantly_config
+        FROM clients WHERE id = ${payload.clientId}::uuid
       `;
 
       if (!client) throw new Error(`Missing client ${payload.clientId}`);
       if (!client.calcom_link) throw new Error(`Client ${payload.clientId} has no calcom_link`);
-      if (!client.instantly_campaign_id) {
-        throw new Error(`Client ${payload.clientId} has no instantly_campaign_id`);
-      }
 
-      const sequenceSteps = enriched?.recommended_depth === "deep" ? 5 : 3;
+      // Derive step count from sequence_config; fall back to enrichment hint or default 3
+      const sequenceSteps =
+        client.sequence_config?.steps?.length
+          ? client.sequence_config.steps.length
+          : enriched?.recommended_depth === "deep"
+            ? 5
+            : 3;
 
       const start = Date.now();
       let output: Awaited<ReturnType<typeof provider.generateSequence>>;
@@ -120,6 +133,7 @@ export function createSequenceGenerationWorker(): Worker<SequenceGenerationJob> 
         costUsdMicro: estimateCostMicro("claude-sonnet-4-20250514", 1500, 1200)
       });
 
+      // Save to generated_sequences (used by instantly-push worker)
       const [sequence] = await sql<{ id: string }[]>`
         INSERT INTO generated_sequences (
           client_id, campaign_id, lead_id,
@@ -139,36 +153,72 @@ export function createSequenceGenerationWorker(): Worker<SequenceGenerationJob> 
         RETURNING id
       `;
 
+      // Save generated sequence to lead and mark review_status = pending
       await sql`
-        UPDATE leads SET lead_status = 'campaign_ready' WHERE id = ${payload.leadId}::uuid
+        UPDATE leads
+        SET lead_sequence = ${JSON.stringify(output.emails)}::jsonb,
+            review_status = 'pending',
+            lead_status   = 'personalized'
+        WHERE id = ${payload.leadId}::uuid
       `;
 
-      await instantlyPushQueue.add("push_sequence", {
-        sequenceId: sequence!.id,
-        clientId: payload.clientId,
-        leadId: payload.leadId,
-        campaignId: client.instantly_campaign_id,
-        traceId
-      }, { jobId: `instantly-push:${sequence!.id}` });
+      // Route based on review_mode
+      const reviewMode = client.review_mode ?? "human";
 
-      await emitEvent({
-        clientId: payload.clientId,
-        leadId: payload.leadId,
-        campaignId: payload.campaignId ?? null,
-        eventType: "sequence_generated",
-        metadata: {
-          sequence_id: sequence!.id,
-          email_count: output.emails.length,
-          icp_fit_score: enriched?.icp_fit_score ?? null,
-          generation_ms: latencyMs
-        },
-        traceId
-      });
+      if (reviewMode === "human") {
+        // Human must approve via POST /api/dashboard/leads/[id]/approve — no push enqueue
+        await emitEvent({
+          clientId: payload.clientId,
+          leadId: payload.leadId,
+          campaignId: payload.campaignId ?? null,
+          eventType: "sequence_generated",
+          metadata: {
+            sequence_id: sequence!.id,
+            email_count: output.emails.length,
+            icp_fit_score: enriched?.icp_fit_score ?? null,
+            generation_ms: latencyMs,
+            review_mode: "human"
+          },
+          traceId
+        });
+      } else {
+        // "auto" or "ai" — push to Instantly immediately
+        const campaignId = client.instantly_config?.campaign_id;
+        if (!campaignId) {
+          throw new Error(
+            `Client ${payload.clientId} has review_mode=${reviewMode} but no instantly_config.campaign_id`
+          );
+        }
+
+        await instantlyPushQueue.add("push_sequence", {
+          sequenceId: sequence!.id,
+          clientId: payload.clientId,
+          leadId: payload.leadId,
+          campaignId,
+          traceId
+        }, { jobId: `instantly-push:${sequence!.id}` });
+
+        await emitEvent({
+          clientId: payload.clientId,
+          leadId: payload.leadId,
+          campaignId: payload.campaignId ?? null,
+          eventType: "sequence_generated",
+          metadata: {
+            sequence_id: sequence!.id,
+            email_count: output.emails.length,
+            icp_fit_score: enriched?.icp_fit_score ?? null,
+            generation_ms: latencyMs,
+            review_mode: reviewMode
+          },
+          traceId
+        });
+      }
 
       return {
         status: "generated",
         sequenceId: sequence!.id,
-        emailCount: output.emails.length
+        emailCount: output.emails.length,
+        reviewMode
       };
     },
     { connection: sequenceGenerationQueue.opts.connection }

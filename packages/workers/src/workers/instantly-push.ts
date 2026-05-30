@@ -98,7 +98,10 @@ export function createInstantlyPushWorker(): Worker<InstantlyPushJob> {
       `;
 
       await sql`
-        UPDATE leads SET lead_status = 'queued_for_sending' WHERE id = ${payload.leadId}::uuid
+        UPDATE leads
+        SET lead_status        = 'queued_for_sending',
+            instantly_contact_id = ${instantlyContactId}
+        WHERE id = ${payload.leadId}::uuid
       `;
 
       await emitEvent({

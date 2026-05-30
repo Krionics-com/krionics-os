@@ -13,6 +13,7 @@ export async function GET(req: NextRequest) {
   const campaignId = searchParams.get("campaign_id") ?? "";
   const clientId = searchParams.get("client_id") ?? "";
   const status = searchParams.get("status") ?? "";
+  const reviewStatus = searchParams.get("review_status") ?? ""; // 'pending' | 'approved' | 'rejected'
   const suppressed = searchParams.get("suppressed") ?? "";
   const search = searchParams.get("search") ?? "";
   const skip = parseInt(searchParams.get("skip") ?? "0");
@@ -26,6 +27,7 @@ export async function GET(req: NextRequest) {
   if (campaignId) conditions.push(sql`l.campaign_id = ${campaignId}`);
   if (clientId) conditions.push(sql`l.client_id = ${clientId}`);
   if (status) conditions.push(sql`l.lead_status = ${status}`);
+  if (reviewStatus) conditions.push(sql`l.review_status = ${reviewStatus}`);
   if (suppressed === "true") conditions.push(sql`l.is_suppressed = TRUE`);
   if (suppressed === "false") conditions.push(sql`l.is_suppressed = FALSE`);
   if (search) {
@@ -45,6 +47,8 @@ export async function GET(req: NextRequest) {
         l.lead_status, l.is_suppressed, l.suppression_reason,
         l.lqs_score, l.source, l.crm_synced,
         l.last_contacted_at, l.replied_at, l.meeting_booked_at,
+        l.review_status, l.enriched_data, l.lead_sequence,
+        l.reviewed_at, l.review_notes,
         l.created_at, l.updated_at,
         cl.company_name as client_name,
         ca.name as campaign_name

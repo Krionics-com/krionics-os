@@ -8,7 +8,7 @@ import { apolloSearchPeople, type ApolloSearchParams } from "../clients/apollo.j
 
 const ApolloImportJobSchema = z.object({
   clientId: z.string().uuid(),
-  campaignId: z.string().uuid(),
+  campaignId: z.string().uuid().optional().nullable(),
   searchParams: z.object({
     titles: z.array(z.string()).optional(),
     q_organization_domains: z.array(z.string()).optional(),
@@ -69,7 +69,7 @@ export function createApolloImportWorker(): Worker<ApolloImportJob> {
             lead_status
           ) VALUES (
             ${payload.clientId}::uuid,
-            ${payload.campaignId}::uuid,
+            ${payload.campaignId ?? null}::uuid,
             ${person.email},
             ${person.first_name ?? null},
             ${person.last_name ?? null},
@@ -112,12 +112,12 @@ export function createApolloImportWorker(): Worker<ApolloImportJob> {
       if (newLeadIds.length > 0) {
         await emitEvent({
           clientId: payload.clientId,
-          campaignId: payload.campaignId,
+          campaignId: payload.campaignId ?? null,
           eventType: "leads_imported",
           metadata: {
             source: "apollo",
             count: newLeadIds.length,
-            campaign_id: payload.campaignId,
+            campaign_id: payload.campaignId ?? null,
             search_page: payload.searchParams.page ?? 1
           },
           traceId: payload.traceId ?? null

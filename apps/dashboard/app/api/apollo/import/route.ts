@@ -3,7 +3,7 @@ import { z } from "zod";
 import { apolloImportQueue } from "@/lib/queues";
 
 const RequestSchema = z.object({
-  campaignId: z.string().uuid(),
+  campaignId: z.string().uuid().optional().nullable(),
   searchParams: z.object({
     titles: z.array(z.string()).optional(),
     q_organization_domains: z.array(z.string()).optional(),
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
 
   const job = await apolloImportQueue.add("apollo_import", {
     clientId,
-    campaignId,
+    campaignId: campaignId ?? null,
     searchParams
   });
 

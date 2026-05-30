@@ -296,3 +296,13 @@
 - Migration 20260530000002: Added apollo_config, clay_config, sequence_config, instantly_config, review_mode, outbound_active, outbound_launched_at to clients table.
 - Migration 20260530000002: Added enriched_data, lead_sequence, review_status, review_notes, reviewed_by, reviewed_at, instantly_contact_id, suppressed_at, suppressed_reason to leads table.
 - Added dedup index on (client_id, apollo_id), review queue index on (client_id, review_status), outbound active index.
+
+## [2026-05-30] build | Phase 3 — Decouple Workers + Review Step + Outbound Config APIs
+- apollo-import.ts: campaignId made optional; leads dedup remains client-scoped.
+- sequence-generation.ts: reads sequence_config for step count, reads review_mode from client. Human-mode skips instantly-push (waits for approval). Auto-mode pushes immediately from instantly_config.campaign_id.
+- instantly-push.ts: stores instantly_contact_id on leads table after push.
+- New API: POST/DELETE /api/dashboard/clients/[slug]/launch-outbound — sets outbound_active flag.
+- New API: PATCH /api/dashboard/clients/[slug]/outbound-config — updates apollo_config, clay_config, sequence_config, instantly_config, review_mode.
+- New API: POST /api/dashboard/leads/[id]/approve — approves sequence, enqueues instantly-push.
+- New API: POST /api/dashboard/leads/[id]/reject — rejects lead, sets suppressed status.
+- leads API: review_status filter added, new columns included in SELECT.
