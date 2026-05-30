@@ -90,9 +90,9 @@ export function createDraftWorker(): Worker<DraftJob> {
         company_name: string;
         sales_lead_name: string | null;
         service_description: string | null;
-        calendly_link: string | null;
+        calcom_link: string | null;
       }[]>`
-        SELECT company_name, sales_lead_name, service_description, calendly_link
+        SELECT company_name, sales_lead_name, service_description, calcom_link
         FROM clients
         WHERE id = ${replyItem.client_id}
       `;
@@ -101,7 +101,7 @@ export function createDraftWorker(): Worker<DraftJob> {
         throw new Error(`Missing client ${replyItem.client_id}`);
       }
 
-      if (!client.calendly_link) {
+      if (!client.calcom_link) {
         await sql`
           UPDATE reply_items
           SET status = 'PENDING_REVIEW'
@@ -115,7 +115,7 @@ export function createDraftWorker(): Worker<DraftJob> {
           traceId: payload.traceId ?? null
         });
 
-        return { status: "queued_no_calendly" };
+        return { status: "queued_no_calcom" };
       }
 
       const config = await loadConfig(["draft.prompt_version", "review.sla_hours_default", "ai.default_model"]);
@@ -135,7 +135,7 @@ export function createDraftWorker(): Worker<DraftJob> {
           company_name: client.company_name,
           sales_lead_name: client.sales_lead_name ?? "",
           service_description: client.service_description ?? "",
-          calendly_link: client.calendly_link
+          calcom_link: client.calcom_link
         }
       });
       const durationMs = Date.now() - start;

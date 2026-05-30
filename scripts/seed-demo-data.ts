@@ -101,7 +101,7 @@ Here's a quick overview:
 
 I'd love to walk you through a live demo and show you exactly how it works for a company like Acme Corp.
 
-Here's a link to grab 20 minutes: https://calendly.com/alex-techflow/discovery
+Here's a link to grab 20 minutes: https://cal.com/alex-techflow/discovery
 
 Looking forward to it,
 Alex`,
@@ -149,7 +149,7 @@ Alex`,
 Thursday/Friday works perfectly — let's lock it in.
 
 Here's my calendar link to grab a slot that suits you:
-👉 https://calendly.com/alex-techflow/discovery
+👉 https://cal.com/alex-techflow/discovery
 
 I'll send over a quick prep doc beforehand so we can make the most of the 30 minutes.
 
@@ -257,7 +257,7 @@ Happy to answer both!
 Most 15-rep teams are fully ramped within 3 weeks.
 
 Worth a quick call to walk through a live demo with your team? Happy to do a group session:
-👉 https://calendly.com/alex-techflow/discovery
+👉 https://cal.com/alex-techflow/discovery
 
 Best,
 Alex`,
@@ -350,7 +350,7 @@ async function main() {
     INSERT INTO clients (
       slug, company_name, contact_email, contact_name,
       timezone, service_type, status, automation_level,
-      service_description, icp_description, calendly_link
+      service_description, icp_description, calcom_link
     )
     VALUES (
       'techflow-demo',
@@ -363,11 +363,11 @@ async function main() {
       1,
       'We help B2B sales teams automate lead qualification and personalised outreach using AI — cutting SDR prospecting time by 60%.',
       'VP Sales, Head of Revenue, CRO at Series A–C SaaS companies with 50–500 employees.',
-      'https://calendly.com/alex-techflow/discovery'
+      'https://cal.com/alex-techflow/discovery'
     )
     ON CONFLICT (slug) DO UPDATE SET
       service_description = EXCLUDED.service_description,
-      calendly_link = EXCLUDED.calendly_link
+      calcom_link = EXCLUDED.calcom_link
     RETURNING id
   `;
   console.log(`✓  Client:    TechFlow Solutions  (${client.id})`);
