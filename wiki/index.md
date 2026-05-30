@@ -46,7 +46,7 @@ Projects
 - [wiki/projects/2026-05-23-dashboard-phase14-search.md](projects/2026-05-23-dashboard-phase14-search.md) - Dashboard Phase 14 — Command Palette & Global Search.
 - [wiki/projects/2026-05-23-reply-orchestration-phase1-3.md](projects/2026-05-23-reply-orchestration-phase1-3.md) - Reply Orchestration System Phase 1-3: DB migrations (enriched_leads, events, lead_state_history, reply_policies, timing_rules, response_queue), Instantly webhook handler, lead state machine. Merged to main via PR #4.
 - [wiki/projects/2026-05-30-client-infrastructure-onboarding.md](projects/2026-05-30-client-infrastructure-onboarding.md) - Client Infrastructure Onboarding Redesign: Database columns added directly to clients table, redesigned Step 4 form UI with DynamicListInput widgets, and deprecation of inventory assignment.
-- [wiki/projects/2026-05-30-outbound-engine-phases-1-6.md](projects/2026-05-30-outbound-engine-phases-1-6.md) - Outbound Engine Phases 1–6: schema foundation, worker decoupling, config UI, review queue page, and pipeline visibility widget.
+- [wiki/projects/2026-05-30-outbound-engine-phases-1-6.md](projects/2026-05-30-outbound-engine-phases-1-6.md) - Outbound Engine Phases 1–6: Campaign-centric to client-continuous refactor. Schema, worker decoupling, review gate, outbound config UI, review queue page, and pipeline visibility widget.
 
 Ingest records
 - [wiki/ingest/2026-05-20-llm-wiki-idea.md](ingest/2026-05-20-llm-wiki-idea.md) - First ingest example and actions taken.
