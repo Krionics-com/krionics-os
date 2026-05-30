@@ -297,6 +297,16 @@
 - Migration 20260530000002: Added enriched_data, lead_sequence, review_status, review_notes, reviewed_by, reviewed_at, instantly_contact_id, suppressed_at, suppressed_reason to leads table.
 - Added dedup index on (client_id, apollo_id), review queue index on (client_id, review_status), outbound active index.
 
+## [2026-05-30] build | Phase 5 — Outbound Review Queue Page
+- New page: /dashboard/outbound-review — shows pending AI-generated sequences for human approval.
+- Lead cards show Clay enrichment data (expandable) + full email sequence (per-step expandable).
+- Approve: POST /leads/[id]/approve → enqueues Instantly push. Reject: POST /leads/[id]/reject with optional notes.
+- Sidebar: "Outbound Review" added to OPERATIONS group. "Campaigns" removed (deprecated).
+
+## [2026-05-30] build | Phase 6 — Pipeline Visibility Widget
+- New API: GET /api/dashboard/clients/[slug]/pipeline — returns lead counts by stage.
+- Client profile Overview tab: pipeline status row shown when outbound_active=true (Raw/Enriching/Pending Review/Sending/Suppressed counts).
+
 ## [2026-05-30] build | Phase 3 — Decouple Workers + Review Step + Outbound Config APIs
 - apollo-import.ts: campaignId made optional; leads dedup remains client-scoped.
 - sequence-generation.ts: reads sequence_config for step count, reads review_mode from client. Human-mode skips instantly-push (waits for approval). Auto-mode pushes immediately from instantly_config.campaign_id.

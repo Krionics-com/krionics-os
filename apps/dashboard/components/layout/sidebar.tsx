@@ -29,6 +29,7 @@ import {
   CheckSquare,
   Server,
   Plus,
+  Send,
 } from "lucide-react";
 import useSWR from "swr";
 import { ClientOnboardingWizard } from "@/components/client-onboarding-wizard";
@@ -54,6 +55,7 @@ const navigationGroups: NavGroup[] = [
     items: [
       { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
       { name: "Review Queue", href: "/dashboard/review", icon: Inbox, badge: "review" },
+      { name: "Outbound Review", href: "/dashboard/outbound-review", icon: Send },
       { name: "Leads", href: "/dashboard/leads", icon: UserCheck },
       { name: "Sequences", href: "/dashboard/sequences", icon: Mail },
       { name: "Voice Calls", href: "/dashboard/voice", icon: PhoneCall },
@@ -63,7 +65,6 @@ const navigationGroups: NavGroup[] = [
     label: "CLIENTS",
     items: [
       { name: "Clients", href: "/dashboard/clients", icon: Building2 },
-      { name: "Campaigns", href: "/dashboard/campaigns", icon: Zap },
       { name: "Onboarding", href: "/dashboard/onboarding", icon: CheckSquare, adminOnly: true },
     ],
   },

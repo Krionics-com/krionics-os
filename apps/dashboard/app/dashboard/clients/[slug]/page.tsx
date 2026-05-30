@@ -60,6 +60,10 @@ export default function ClientProfilePage({
     `/api/dashboard/clients/${slug}`,
     fetcher
   );
+  const { data: pipelineData } = useSWR(
+    `/api/dashboard/clients/${slug}/pipeline`,
+    fetcher
+  );
   const { data: user } = useSWR("/api/auth/me", fetcher);
   const isAdmin = user?.role === "admin" || user?.role === "super_admin";
 
@@ -253,6 +257,27 @@ export default function ClientProfilePage({
             {/* Overview */}
             {activeTab === 0 && (
               <div className="space-y-6">
+                {/* Pipeline Status */}
+                {pipelineData?.outbound_active && (
+                  <div>
+                    <h3 className="text-sm font-semibold mb-3">Outbound Pipeline</h3>
+                    <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
+                      {[
+                        { label: "Raw", value: pipelineData.pipeline.raw, color: "text-muted-foreground" },
+                        { label: "Enriching", value: pipelineData.pipeline.enriching, color: "text-blue-600" },
+                        { label: "Pending Review", value: pipelineData.pipeline.pending_review, color: "text-amber-600" },
+                        { label: "Sending", value: pipelineData.pipeline.sending, color: "text-primary" },
+                        { label: "Suppressed", value: pipelineData.pipeline.suppressed, color: "text-muted-foreground" },
+                      ].map((stat) => (
+                        <div key={stat.label} className="rounded-lg border border-border p-3 text-center">
+                          <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">{stat.label}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div>
                   <h3 className="text-sm font-semibold mb-3">Recent Activity</h3>
                   {recentActivity.length === 0 ? (
