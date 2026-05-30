@@ -19,13 +19,14 @@ import { AiTab } from "@/components/client-tabs/ai-tab";
 import { TeamTab } from "@/components/client-tabs/team-tab";
 import { ReplyPoliciesTab } from "@/components/client-tabs/reply-policies-tab";
 import { TimingRulesTab } from "@/components/client-tabs/timing-rules-tab";
+import { OutboundTab } from "@/components/client-tabs/outbound-tab";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 const TABS = [
   "Overview", "Business Info", "ICP & Positioning",
   "Automation", "CRM Config", "Slack Config", "AI Config", "Team",
-  "Reply Policies", "Timing Rules",
+  "Reply Policies", "Timing Rules", "Outbound",
 ];
 
 function statusVariant(status: string): "default" | "secondary" | "destructive" | "outline" {
@@ -353,6 +354,16 @@ export default function ClientProfilePage({
 
             {/* Timing Rules */}
             {activeTab === 9 && <TimingRulesTab clientSlug={slug} isAdmin={isAdmin} />}
+
+            {/* Outbound */}
+            {activeTab === 10 && (
+              <OutboundTab
+                client={client}
+                slug={slug}
+                isAdmin={isAdmin}
+                onRefresh={() => mutate()}
+              />
+            )}
 
             {/* Save button at bottom of editable tabs */}
             {editing && activeTab > 0 && activeTab < 8 && (

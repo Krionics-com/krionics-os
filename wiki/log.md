@@ -297,6 +297,13 @@
 - Migration 20260530000002: Added enriched_data, lead_sequence, review_status, review_notes, reviewed_by, reviewed_at, instantly_contact_id, suppressed_at, suppressed_reason to leads table.
 - Added dedup index on (client_id, apollo_id), review queue index on (client_id, review_status), outbound active index.
 
+## [2026-05-30] build | Phase 4 — Outbound Config UI Tab on Client Profile
+- New component: apps/dashboard/components/client-tabs/outbound-tab.tsx
+- Sub-tabs: Apollo (cadence, lead target, ICP preview), Clay (enrichment toggles), Sequence (steps editor), Instantly (campaign ID, from emails, send window), Review Mode (human/ai/auto).
+- Launch/Pause Outbound banner with POST/DELETE /launch-outbound.
+- Config saves via PATCH /api/dashboard/clients/[slug]/outbound-config.
+- Outbound tab added to client profile page.tsx (last tab position).
+
 ## [2026-05-30] build | Phase 3 — Decouple Workers + Review Step + Outbound Config APIs
 - apollo-import.ts: campaignId made optional; leads dedup remains client-scoped.
 - sequence-generation.ts: reads sequence_config for step count, reads review_mode from client. Human-mode skips instantly-push (waits for approval). Auto-mode pushes immediately from instantly_config.campaign_id.
