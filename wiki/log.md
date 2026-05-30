@@ -291,3 +291,8 @@
 ## [2026-05-30] fix | Phase 1 — calcom_link column rename propagated to code
 - Fixed all TypeScript/TSX references from calendly_link → calcom_link following migration 20260528000006.
 - Files updated: apps/dashboard/app/api/dashboard/clients/route.ts, packages/workers/src/workers/sequence-generation.ts, and any others found by grep.
+
+## [2026-05-30] build | Phase 2 — Outbound Engine Schema Foundation
+- Migration 20260530000002: Added apollo_config, clay_config, sequence_config, instantly_config, review_mode, outbound_active, outbound_launched_at to clients table.
+- Migration 20260530000002: Added enriched_data, lead_sequence, review_status, review_notes, reviewed_by, reviewed_at, instantly_contact_id, suppressed_at, suppressed_reason to leads table.
+- Added dedup index on (client_id, apollo_id), review queue index on (client_id, review_status), outbound active index.

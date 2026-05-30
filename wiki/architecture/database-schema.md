@@ -8,13 +8,13 @@ Overview
 Table groups
 
 **Foundation**
-- `clients` — tenant root; holds config JSONB, automation_level (1–3), CRM config, knowledge asset fields (sales_lead_name, service_description, icp_description, positioning_statement).
+- `clients` — tenant root; holds config JSONB, automation_level (1–3), CRM config, knowledge asset fields (sales_lead_name, service_description, icp_description, positioning_statement). Outbound engine columns (migration 20260530000002): apollo_config JSONB, clay_config JSONB, sequence_config JSONB (4-step default), instantly_config JSONB, review_mode TEXT ('human'|'ai'|'auto'), outbound_active BOOLEAN, outbound_launched_at TIMESTAMPTZ.
 - `operators` — human users; client_access UUID[] (NULL = all clients); role: admin / reviewer / viewer.
 - `config` — system-wide key/value defaults seeded at migration time.
 
 **Pipeline**
 - `campaigns` — per-client Instantly campaigns; icp/sequence/reply_policies JSONB; email send counters.
-- `leads` — Universal Lead Schema: identity, company, role, enrichment (clay_enrichment JSONB, lqs_score, personalization_depth L1–L4), lead_status state machine (29 states), CRM sync, suppression.
+- `leads` — Universal Lead Schema: identity, company, role, enrichment (clay_enrichment JSONB, lqs_score, personalization_depth L1–L4), lead_status state machine (29 states), CRM sync, suppression. Outbound review columns (migration 20260530000002): enriched_data JSONB, lead_sequence JSONB, review_status TEXT ('pending'|'approved'|'rejected'), review_notes TEXT, reviewed_by UUID→operators, reviewed_at TIMESTAMPTZ, instantly_contact_id TEXT, suppressed_at TIMESTAMPTZ, suppressed_reason TEXT.
 - `email_events` — partitioned; all Instantly webhook events (sent, opened, clicked, bounced, replied).
 - `raw_replies` — immutable webhook store; idempotency_key = sha256 of instantly_reply_id; raw_payload JSONB never modified.
 
