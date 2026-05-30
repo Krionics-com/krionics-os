@@ -287,3 +287,7 @@
 - Deprecated and safely removed the old `/assign-infrastructure` endpoint.
 - Excluded vitest configurations from production compilation and fixed pre-existing `LeadState` type unions.
 - Successfully verified error-free Next.js production build bundle compilation (Exit code 0).
+
+## [2026-05-30] fix | Phase 1 — calcom_link column rename propagated to code
+- Fixed all TypeScript/TSX references from calendly_link → calcom_link following migration 20260528000006.
+- Files updated: apps/dashboard/app/api/dashboard/clients/route.ts, packages/workers/src/workers/sequence-generation.ts, and any others found by grep.

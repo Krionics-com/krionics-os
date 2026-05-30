@@ -58,17 +58,17 @@ export function createSequenceGenerationWorker(): Worker<SequenceGenerationJob> 
         sales_lead_name: string | null;
         service_description: string | null;
         icp_description: string | null;
-        calendly_link: string | null;
+        calcom_link: string | null;
         instantly_campaign_id: string | null;
       }[]>`
         SELECT company_name, sales_lead_name, service_description,
-               icp_description, calendly_link, instantly_campaign_id
+               icp_description, calcom_link, instantly_campaign_id
         FROM clients
         WHERE id = ${payload.clientId}::uuid
       `;
 
       if (!client) throw new Error(`Missing client ${payload.clientId}`);
-      if (!client.calendly_link) throw new Error(`Client ${payload.clientId} has no calendly_link`);
+      if (!client.calcom_link) throw new Error(`Client ${payload.clientId} has no calcom_link`);
       if (!client.instantly_campaign_id) {
         throw new Error(`Client ${payload.clientId} has no instantly_campaign_id`);
       }
@@ -95,7 +95,7 @@ export function createSequenceGenerationWorker(): Worker<SequenceGenerationJob> 
             company_name: client.company_name,
             sales_lead_name: client.sales_lead_name ?? "Team",
             service_description: client.service_description ?? "",
-            calendly_link: client.calendly_link
+            calcom_link: client.calcom_link
           },
           sequence_steps: sequenceSteps
         });
