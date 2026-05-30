@@ -350,7 +350,7 @@ async function main() {
     INSERT INTO clients (
       slug, company_name, contact_email, contact_name,
       timezone, service_type, status, automation_level,
-      service_description, icp_description, calendly_link
+      service_description, icp_description, calcom_link
     )
     VALUES (
       'techflow-demo',
@@ -363,11 +363,11 @@ async function main() {
       1,
       'We help B2B sales teams automate lead qualification and personalised outreach using AI — cutting SDR prospecting time by 60%.',
       'VP Sales, Head of Revenue, CRO at Series A–C SaaS companies with 50–500 employees.',
-      'https://calendly.com/alex-techflow/discovery'
+      'https://cal.com/alex-techflow/discovery'
     )
     ON CONFLICT (slug) DO UPDATE SET
       service_description = EXCLUDED.service_description,
-      calendly_link = EXCLUDED.calendly_link
+      calcom_link = EXCLUDED.calcom_link
     RETURNING id
   `;
   console.log(`✓  Client:    TechFlow Solutions  (${client.id})`);

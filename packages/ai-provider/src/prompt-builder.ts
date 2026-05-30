@@ -114,7 +114,7 @@ export function draftPrompt(input: DraftInput): BuiltPrompt {
       `Company: ${input.client_context.company_name}`,
       `Sales Lead: ${input.client_context.sales_lead_name}`,
       `Service: ${input.client_context.service_description}`,
-      `Booking Link: ${input.client_context.calendly_link}`
+      `Booking Link: ${input.client_context.calcom_link}`
     ].join("\n"),
     conversationContext: [
       `Intent: ${input.intent}`,
@@ -177,7 +177,7 @@ export function sequencePrompt(input: SequenceInput): BuiltPrompt {
       `Company: ${input.client_context.company_name}`,
       `Sales Lead: ${input.client_context.sales_lead_name}`,
       `Service: ${input.client_context.service_description}`,
-      `Booking Link: ${input.client_context.calendly_link}`
+      `Booking Link: ${input.client_context.calcom_link}`
     ].join("\n"),
     conversationContext: [
       `Lead: ${input.lead.full_name}`,

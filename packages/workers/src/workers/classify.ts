@@ -79,10 +79,10 @@ export function createClassifyWorker(): Worker<ClassificationJob> {
         service_description: string | null;
         icp_description: string | null;
         sales_lead_name: string | null;
-        calendly_link: string | null;
+        calcom_link: string | null;
         automation_level: number;
       }[]>`
-        SELECT company_name, service_description, icp_description, sales_lead_name, calendly_link, automation_level
+        SELECT company_name, service_description, icp_description, sales_lead_name, calcom_link, automation_level
         FROM clients
         WHERE id = ${replyItem.client_id}
       `;

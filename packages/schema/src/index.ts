@@ -83,7 +83,7 @@ export const DraftInputSchema = z.object({
     company_name: z.string().min(1),
     sales_lead_name: z.string().min(1),
     service_description: z.string().min(1),
-    calendly_link: z.string().url()
+    calcom_link: z.string().url()
   })
 });
 export type DraftInput = z.infer<typeof DraftInputSchema>;
@@ -103,7 +103,7 @@ export const ClientOperatingProfileSchema = z.object({
   sales_lead_name: z.string().min(1),
   service_description: z.string().min(1),
   icp_description: z.string().min(1),
-  calendly_link: z.string().url(),
+  calcom_link: z.string().url(),
   crm_type: z.enum(["hubspot", "pipedrive", "none"])
 });
 export type ClientOperatingProfile = z.infer<typeof ClientOperatingProfileSchema>;
@@ -165,7 +165,7 @@ export const SequenceInputSchema = z.object({
     company_name: z.string().min(1),
     sales_lead_name: z.string().min(1),
     service_description: z.string().min(1),
-    calendly_link: z.string().url()
+    calcom_link: z.string().url()
   }),
   sequence_steps: z.number().int().min(1).max(10).default(5)
 });
