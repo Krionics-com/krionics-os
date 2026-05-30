@@ -112,7 +112,9 @@ export async function POST(req: NextRequest) {
     automation_level, ai_tone, ai_knowledge_base, forbidden_claims,
     // Step 4 — infrastructure
     infrastructure_strategy,
-    // Config JSONB (ICP targets, team, infra details, etc.)
+    primary_domain, outbound_domains, inboxes, mail_provider,
+    technical_contact, access_checklist, setup_checklist, notes,
+    // Config JSONB (ICP targets, team, etc.)
     config,
   } = body;
 
@@ -141,7 +143,9 @@ export async function POST(req: NextRequest) {
         value_proposition, sales_lead_name, icp_description,
         crm_type, crm_config, calendly_link, slack_webhook_url, slack_channel_id,
         automation_level, ai_tone, ai_knowledge_base, forbidden_claims,
-        infrastructure_strategy, config
+        infrastructure_strategy, primary_domain, outbound_domains, inboxes,
+        mail_provider, technical_contact, access_checklist, setup_checklist, notes,
+        config
       )
       VALUES (
         ${company_name},
@@ -175,6 +179,14 @@ export async function POST(req: NextRequest) {
         ${ai_knowledge_base ?? null},
         ${forbidden_claims ?? null},
         ${infrastructure_strategy ?? null},
+        ${primary_domain ?? null},
+        ${outbound_domains ?? []},
+        ${inboxes ?? []},
+        ${mail_provider ?? null},
+        ${technical_contact ? JSON.stringify(technical_contact) : null},
+        ${access_checklist ? JSON.stringify(access_checklist) : null},
+        ${setup_checklist ? JSON.stringify(setup_checklist) : null},
+        ${notes ?? null},
         ${config ? JSON.stringify(config) : null}
       )
       RETURNING *

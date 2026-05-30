@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS timing_rules (
   created_at            TIMESTAMPTZ DEFAULT NOW(),
   updated_at            TIMESTAMPTZ DEFAULT NOW(),
 
-  PRIMARY KEY (client_id, intent)
+  UNIQUE (client_id, intent)
 );
 
 CREATE INDEX IF NOT EXISTS idx_timing_rules_client_id ON timing_rules(client_id);

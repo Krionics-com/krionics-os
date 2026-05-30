@@ -121,6 +121,8 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       "crm_type", "sales_lead_name", "service_description",
       "icp_description", "positioning_statement", "calendly_link",
       "slack_webhook_url", "slack_channel_id", "instantly_campaign_id",
+      "infrastructure_strategy", "primary_domain", "outbound_domains", "inboxes",
+      "mail_provider", "technical_contact", "access_checklist", "setup_checklist", "notes",
     ];
 
     // Accept calcom_link from the frontend and map it to the DB column name
@@ -131,7 +133,14 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
     const updates: Record<string, any> = {};
     for (const key of allowedScalars) {
-      if (key in scalars) updates[key] = scalars[key];
+      if (key in scalars) {
+        let val = scalars[key];
+        // Safely stringify JSONB objects so postgres library inserts them properly
+        if (typeof val === "object" && val !== null && !Array.isArray(val)) {
+          val = JSON.stringify(val);
+        }
+        updates[key] = val;
+      }
     }
 
     if (Object.keys(updates).length > 0) {

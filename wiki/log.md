@@ -278,3 +278,12 @@
 - All prior RICR workers (ingest/classify/draft/review-dispatch/send) were already implemented and connect automatically via the queues.
 - Merged to main via PR #4 (squash merge from claude/hopeful-planck-q4WyA).
 - Added wiki/projects/2026-05-23-reply-orchestration-phase1-3.md and updated index, log, and database-schema.md.
+
+## [2026-05-30] project | Client Infrastructure Onboarding Redesign
+- Created database migration `20260530000001_update_infrastructure_schema.sql` adding first-class columns (`primary_domain`, `outbound_domains`, `inboxes`, `mail_provider`, `technical_contact`, `access_checklist`, `setup_checklist`, `notes`) and updated `infrastructure_strategy` check constraint to permit `'existing'` or `'setup_required'`.
+- Fixed pre-existing database migration partitioning bugs in `create_events.sql` and duplicate primary keys in `create_timing_rules.sql` to permit a clean Postgres schema migration run.
+- Redesigned the Infrastructure onboarding step in `apps/dashboard/components/client-onboarding-wizard.tsx` with dynamic badge list input interfaces (`DynamicListInput`) and toggle-strategy forms.
+- Updated `POST /api/dashboard/clients` and `PATCH /api/dashboard/clients/[slug]` API endpoints to process root-level infrastructure fields as first-class columns.
+- Deprecated and safely removed the old `/assign-infrastructure` endpoint.
+- Excluded vitest configurations from production compilation and fixed pre-existing `LeadState` type unions.
+- Successfully verified error-free Next.js production build bundle compilation (Exit code 0).

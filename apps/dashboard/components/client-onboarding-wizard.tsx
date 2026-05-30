@@ -19,17 +19,6 @@ const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-interface InfraChecklist {
-  domains_purchased: boolean;
-  dns_access: boolean;
-  spf_configured: boolean;
-  dkim_configured: boolean;
-  dmarc_configured: boolean;
-  inboxes_created: boolean;
-  warmup_started: boolean;
-  warmup_complete: boolean;
-}
-
 interface WizardData {
   // Step 1 — Client Basics
   company_name: string;
@@ -67,15 +56,29 @@ interface WizardData {
   target_geographies: string[];
   icp_exclusions: string;
   // Step 4 — Infrastructure
-  infrastructure_strategy: "existing" | "client_owned";
-  selected_inbox_emails: string[];
-  selected_domain_names: string[];
-  client_domains_text: string;
-  client_inboxes_text: string;
-  infra_checklist: InfraChecklist;
+  infrastructure_strategy: "existing" | "setup_required";
+  primary_domain: string;
+  outbound_domains: string[];
+  inboxes: string[];
+  mail_provider: string;
+  access_checklist: {
+    dns_access: boolean;
+    mailbox_access: boolean;
+  };
+  setup_checklist: {
+    domains_purchased: boolean;
+    dns_access: boolean;
+    spf_configured: boolean;
+    dkim_configured: boolean;
+    dmarc_configured: boolean;
+    inboxes_created: boolean;
+    warmup_started: boolean;
+    warmup_complete: boolean;
+  };
   tech_contact_name: string;
   tech_contact_email: string;
   tech_contact_role: string;
+  notes: string;
   // Step 5 — Integrations
   hubspot_connected: boolean;
   hubspot_portal_id: string;
@@ -103,14 +106,26 @@ const EMPTY: WizardData = {
   target_industries: [], target_company_sizes: [], target_titles: "",
   target_seniority: [], target_geographies: [], icp_exclusions: "",
   infrastructure_strategy: "existing",
-  selected_inbox_emails: [], selected_domain_names: [],
-  client_domains_text: "", client_inboxes_text: "",
-  infra_checklist: {
-    domains_purchased: false, dns_access: false, spf_configured: false,
-    dkim_configured: false, dmarc_configured: false, inboxes_created: false,
-    warmup_started: false, warmup_complete: false,
+  primary_domain: "",
+  outbound_domains: [],
+  inboxes: [],
+  mail_provider: "Google Workspace",
+  access_checklist: {
+    dns_access: false,
+    mailbox_access: false,
+  },
+  setup_checklist: {
+    domains_purchased: false,
+    dns_access: false,
+    spf_configured: false,
+    dkim_configured: false,
+    dmarc_configured: false,
+    inboxes_created: false,
+    warmup_started: false,
+    warmup_complete: false,
   },
   tech_contact_name: "", tech_contact_email: "", tech_contact_role: "",
+  notes: "",
   hubspot_connected: false, hubspot_portal_id: "", hubspot_sync_enabled: false,
   calcom_link: "", calcom_event_type: "", calcom_meeting_duration: "",
   slack_create_channel: false,
@@ -137,16 +152,6 @@ const SENIORITY_LEVELS = ["Owner", "C-Level", "VP", "Director", "Manager", "Indi
 
 const GEOGRAPHIES = ["United States", "Canada", "United Kingdom", "Australia", "Europe", "APAC", "LATAM", "Global"];
 
-const INFRA_CHECKLIST_ITEMS: { key: keyof InfraChecklist; label: string }[] = [
-  { key: "domains_purchased", label: "Domains Purchased" },
-  { key: "dns_access", label: "DNS Access Granted" },
-  { key: "spf_configured", label: "SPF Configured" },
-  { key: "dkim_configured", label: "DKIM Configured" },
-  { key: "dmarc_configured", label: "DMARC Configured" },
-  { key: "inboxes_created", label: "Inboxes Created" },
-  { key: "warmup_started", label: "Warmup Started" },
-  { key: "warmup_complete", label: "Warmup Complete" },
-];
 
 const STEPS = [
   { label: "Client Basics",      icon: Building2,      description: "Company identity, contact, and commercial info" },
@@ -445,53 +450,151 @@ function Step3({ d, set }: { d: WizardData; set: (p: Partial<WizardData>) => voi
 
 // ─── Step 4: Infrastructure ───────────────────────────────────────────────────
 
+// ─── Dynamic List Input ──────────────────────────────────────────────────────
+
+import { Plus } from "lucide-react";
+
+interface DynamicListInputProps {
+  label: string;
+  placeholder: string;
+  values: string[];
+  onChange: (next: string[]) => void;
+  hint?: string;
+}
+
+function DynamicListInput({ label, placeholder, values, onChange, hint }: DynamicListInputProps) {
+  const [input, setInput] = useState("");
+
+  function add() {
+    const trimmed = input.trim();
+    if (!trimmed) return;
+    if (values.includes(trimmed)) {
+      toast.error("Already added");
+      return;
+    }
+    onChange([...values, trimmed]);
+    setInput("");
+  }
+
+  function remove(val: string) {
+    onChange(values.filter((v) => v !== val));
+  }
+
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-sm font-medium">{label}</Label>
+      <div className="flex gap-2">
+        <Input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder={placeholder}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              add();
+            }
+          }}
+          className="flex-1"
+        />
+        <Button type="button" size="sm" onClick={add} variant="outline" className="px-3">
+          <Plus className="h-4 w-4 mr-1" /> Add
+        </Button>
+      </div>
+      {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+      
+      {values.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 p-2 rounded-lg border border-border bg-muted/20 min-h-[40px] mt-2">
+          {values.map((v) => (
+            <div
+              key={v}
+              className="inline-flex items-center gap-1.5 bg-secondary text-secondary-foreground text-xs font-mono font-medium px-2.5 py-1 rounded-full border border-border group"
+            >
+              <span>{v}</span>
+              <button
+                type="button"
+                onClick={() => remove(v)}
+                className="text-muted-foreground hover:text-destructive transition-colors shrink-0 cursor-pointer"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Step 4: Infrastructure ───────────────────────────────────────────────────
+
+const INFRA_SETUP_ITEMS: { key: keyof WizardData["setup_checklist"]; label: string }[] = [
+  { key: "domains_purchased", label: "Domains Purchased" },
+  { key: "dns_access", label: "DNS Access Granted" },
+  { key: "spf_configured", label: "SPF Configured" },
+  { key: "dkim_configured", label: "DKIM Configured" },
+  { key: "dmarc_configured", label: "DMARC Configured" },
+  { key: "inboxes_created", label: "Inboxes Created" },
+  { key: "warmup_started", label: "Warmup Started" },
+  { key: "warmup_complete", label: "Warmup Complete" },
+];
+
 function Step4({ d, set }: { d: WizardData; set: (p: Partial<WizardData>) => void }) {
-  const { data: inboxData, isLoading: inboxLoading } = useSWR(
-    d.infrastructure_strategy === "existing" ? "/api/dashboard/infra/inboxes?limit=200" : null, fetcher
-  );
-  const { data: domainData, isLoading: domainLoading } = useSWR(
-    d.infrastructure_strategy === "existing" ? "/api/dashboard/infra/domains?limit=200" : null, fetcher
-  );
-
-  const unassignedInboxes: any[] = (inboxData?.inboxes ?? []).filter((i: any) => !i.client_id);
-  const unassignedDomains: any[] = (domainData?.domains ?? []).filter((dom: any) => !dom.client_id);
-
-  function toggleInbox(email: string) {
-    const cur = d.selected_inbox_emails;
-    set({ selected_inbox_emails: cur.includes(email) ? cur.filter((e) => e !== email) : [...cur, email] });
+  function toggleAccessChecklist(key: "dns_access" | "mailbox_access") {
+    set({
+      access_checklist: {
+        ...d.access_checklist,
+        [key]: !d.access_checklist[key],
+      },
+    });
   }
-  function toggleDomain(name: string) {
-    const cur = d.selected_domain_names;
-    set({ selected_domain_names: cur.includes(name) ? cur.filter((n) => n !== name) : [...cur, name] });
-  }
-  function toggleChecklist(key: keyof InfraChecklist) {
-    set({ infra_checklist: { ...d.infra_checklist, [key]: !d.infra_checklist[key] } });
+
+  function toggleSetupChecklist(key: keyof WizardData["setup_checklist"]) {
+    set({
+      setup_checklist: {
+        ...d.setup_checklist,
+        [key]: !d.setup_checklist[key],
+      },
+    });
   }
 
   return (
     <div className="space-y-6">
-      {/* Strategy picker */}
+      {/* Strategy selector */}
       <div>
         <SectionTitle>Infrastructure Strategy</SectionTitle>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
-          {(["existing", "client_owned"] as const).map((opt) => (
-            <button key={opt} type="button" onClick={() => set({ infrastructure_strategy: opt })}
+          {(["existing", "setup_required"] as const).map((opt) => (
+            <button
+              key={opt}
+              type="button"
+              onClick={() => set({ infrastructure_strategy: opt })}
               className={cn(
-                "flex items-start gap-3 rounded-lg border p-4 text-left transition-colors",
-                d.infrastructure_strategy === opt ? "border-primary bg-primary/10" : "border-border hover:border-primary/50"
-              )}>
-              <div className={cn("mt-0.5 h-4 w-4 rounded-full border-2 flex items-center justify-center flex-shrink-0",
-                d.infrastructure_strategy === opt ? "border-primary" : "border-muted-foreground")}>
-                {d.infrastructure_strategy === opt && <div className="h-2 w-2 rounded-full bg-primary" />}
+                "flex items-start gap-3 rounded-lg border p-4 text-left transition-colors cursor-pointer",
+                d.infrastructure_strategy === opt
+                  ? "border-primary bg-primary/10"
+                  : "border-border hover:border-primary/50"
+              )}
+            >
+              <div
+                className={cn(
+                  "mt-0.5 h-4 w-4 rounded-full border-2 flex items-center justify-center flex-shrink-0",
+                  d.infrastructure_strategy === opt ? "border-primary" : "border-muted-foreground"
+                )}
+              >
+                {d.infrastructure_strategy === opt && (
+                  <div className="h-2 w-2 rounded-full bg-primary" />
+                )}
               </div>
               <div>
                 <p className="text-sm font-semibold">
-                  {opt === "existing" ? "Existing Infrastructure" : "Client-Owned Infrastructure"}
+                  {opt === "existing"
+                    ? "Client Has Existing Infrastructure"
+                    : "Infrastructure Needs Setup"}
                 </p>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   {opt === "existing"
-                    ? "Assign inboxes and domains already in the system"
-                    : "Client doesn't have infrastructure yet — track setup progress"}
+                    ? "Client already has outbound domains, inboxes, and mail provider setup"
+                    : "Client does not have infrastructure yet — track setup progress"}
                 </p>
               </div>
             </button>
@@ -500,118 +603,171 @@ function Step4({ d, set }: { d: WizardData; set: (p: Partial<WizardData>) => voi
       </div>
 
       {d.infrastructure_strategy === "existing" ? (
-        <>
-          {/* Inboxes */}
-          <div>
-            <SectionTitle>Available Inboxes</SectionTitle>
-            <p className="text-xs text-muted-foreground mt-1 mb-3">Select unassigned inboxes to assign to this client.</p>
-            {inboxLoading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                {[0, 1, 2, 3].map((i) => <div key={i} className="h-14 rounded-lg bg-muted animate-pulse" />)}
-              </div>
-            ) : unassignedInboxes.length === 0 ? (
-              <p className="text-sm text-muted-foreground italic">No unassigned inboxes available.</p>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                {unassignedInboxes.map((inbox, idx) => {
-                  const sel = d.selected_inbox_emails.includes(inbox.email);
-                  return (
-                    <button key={inbox.email ?? `inbox-${idx}`} type="button" onClick={() => toggleInbox(inbox.email)}
-                      className={cn("flex items-center gap-2 rounded-lg border px-3 py-2 text-sm text-left transition-colors",
-                        sel ? "border-primary bg-primary/10 text-primary" : "border-border hover:border-primary/50")}>
-                      <div className={cn("h-4 w-4 rounded border flex items-center justify-center flex-shrink-0",
-                        sel ? "bg-primary border-primary" : "border-muted-foreground")}>
-                        {sel && <Check className="h-2.5 w-2.5 text-white" />}
-                      </div>
-                      <div>
-                        <p className="font-mono text-xs">{inbox.email}</p>
-                        <p className="text-xs text-muted-foreground">{inbox.provider ?? "—"}</p>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+        <div className="space-y-4">
+          {/* Primary Domain */}
+          <Field label="Primary Domain" id="w-prim-dom" required hint="Example: acme.com">
+            <Input
+              id="w-prim-dom"
+              value={d.primary_domain}
+              placeholder="acme.com"
+              onChange={(e) => set({ primary_domain: e.target.value })}
+            />
+          </Field>
 
-          {/* Domains */}
+          {/* Outbound Domains */}
+          <DynamicListInput
+            label="Outbound Domains"
+            placeholder="getacme.com (type and press Enter or Add)"
+            values={d.outbound_domains}
+            onChange={(next) => set({ outbound_domains: next })}
+            hint="Outbound domains owned by the client (e.g. getacme.com, joinacme.com)"
+          />
+
+          {/* Existing Inboxes */}
+          <DynamicListInput
+            label="Existing Inboxes"
+            placeholder="john@getacme.com (type and press Enter or Add)"
+            values={d.inboxes}
+            onChange={(next) => set({ inboxes: next })}
+            hint="Outbound sending mailboxes already set up by the client"
+          />
+
+          {/* Mail Provider */}
+          <Field label="Mail Provider" id="w-mail-prov">
+            <select
+              id="w-mail-prov"
+              value={d.mail_provider}
+              onChange={(e) => set({ mail_provider: e.target.value })}
+              className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+            >
+              <option value="Google Workspace">Google Workspace</option>
+              <option value="Microsoft 365">Microsoft 365</option>
+              <option value="Other">Other</option>
+            </select>
+          </Field>
+
+          {/* Access Checklist */}
           <div>
-            <SectionTitle>Available Domains</SectionTitle>
-            <p className="text-xs text-muted-foreground mt-1 mb-3">Select unassigned domains to assign to this client.</p>
-            {domainLoading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                {[0, 1, 2].map((i) => <div key={i} className="h-10 rounded-lg bg-muted animate-pulse" />)}
-              </div>
-            ) : unassignedDomains.length === 0 ? (
-              <p className="text-sm text-muted-foreground italic">No unassigned domains available.</p>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                {unassignedDomains.map((domain, idx) => {
-                  const sel = d.selected_domain_names.includes(domain.domain);
-                  return (
-                    <button key={domain.domain ?? `domain-${idx}`} type="button" onClick={() => toggleDomain(domain.domain)}
-                      className={cn("flex items-center gap-2 rounded-lg border px-3 py-2 text-sm text-left transition-colors",
-                        sel ? "border-primary bg-primary/10 text-primary" : "border-border hover:border-primary/50")}>
-                      <div className={cn("h-4 w-4 rounded border flex items-center justify-center flex-shrink-0",
-                        sel ? "bg-primary border-primary" : "border-muted-foreground")}>
-                        {sel && <Check className="h-2.5 w-2.5 text-white" />}
-                      </div>
-                      <span className="font-mono text-xs">{domain.domain}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </>
-      ) : (
-        <>
-          {/* Client-owned setup checklist */}
-          <div>
-            <SectionTitle>Setup Checklist</SectionTitle>
-            <div className="mt-3 space-y-2">
-              {INFRA_CHECKLIST_ITEMS.map(({ key, label }) => {
-                const checked = d.infra_checklist[key];
+            <SectionTitle>Access Checklist</SectionTitle>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-3">
+              {(["dns_access", "mailbox_access"] as const).map((key) => {
+                const checked = d.access_checklist[key];
                 return (
-                  <button key={key} type="button" onClick={() => toggleChecklist(key)}
-                    className="flex items-center gap-3 w-full rounded-lg border border-border px-4 py-2.5 text-sm text-left hover:bg-muted/30 transition-colors">
-                    <div className={cn("h-5 w-5 rounded-full border-2 flex items-center justify-center flex-shrink-0",
-                      checked ? "border-primary bg-primary" : "border-muted-foreground")}>
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => toggleAccessChecklist(key)}
+                    className="flex items-center gap-3 w-full rounded-lg border border-border px-4 py-2.5 text-sm text-left hover:bg-muted/30 transition-colors cursor-pointer"
+                  >
+                    <div
+                      className={cn(
+                        "h-5 w-5 rounded-full border-2 flex items-center justify-center flex-shrink-0",
+                        checked ? "border-primary bg-primary" : "border-muted-foreground"
+                      )}
+                    >
                       {checked && <Check className="h-3 w-3 text-white" />}
                     </div>
-                    <span className={checked ? "line-through text-muted-foreground" : ""}>{label}</span>
+                    <span>{key === "dns_access" ? "DNS Access Granted" : "Mailbox Access Granted"}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {/* Setup Progress Checklist */}
+          <div>
+            <SectionTitle>Setup Progress Checklist</SectionTitle>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-3">
+              {INFRA_SETUP_ITEMS.map(({ key, label }) => {
+                const checked = d.setup_checklist[key];
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => toggleSetupChecklist(key)}
+                    className="flex items-center gap-3 w-full rounded-lg border border-border px-4 py-2.5 text-sm text-left hover:bg-muted/30 transition-colors cursor-pointer"
+                  >
+                    <div
+                      className={cn(
+                        "h-5 w-5 rounded-full border-2 flex items-center justify-center flex-shrink-0",
+                        checked ? "border-primary bg-primary" : "border-muted-foreground"
+                      )}
+                    >
+                      {checked && <Check className="h-3 w-3 text-white" />}
+                    </div>
+                    <span className={checked ? "line-through text-muted-foreground" : ""}>
+                      {label}
+                    </span>
                   </button>
                 );
               })}
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <TA label="Domains (one per line)" id="w-cdom" value={d.client_domains_text}
-              onChange={(v) => set({ client_domains_text: v })}
-              placeholder={"getacme.com\njoinacme.com"} rows={4} />
-            <TA label="Inboxes (one per line)" id="w-cinb" value={d.client_inboxes_text}
-              onChange={(v) => set({ client_inboxes_text: v })}
-              placeholder={"john@getacme.com\nsarah@getacme.com"} rows={4} />
+          {/* Planned Outbound Domains */}
+          <DynamicListInput
+            label="Planned Outbound Domains"
+            placeholder="getacme.com (type and press Enter or Add)"
+            values={d.outbound_domains}
+            onChange={(next) => set({ outbound_domains: next })}
+            hint="Outbound domains planned for purchase/provisioning"
+          />
+
+          {/* Planned Inboxes */}
+          <DynamicListInput
+            label="Planned Inboxes"
+            placeholder="john@getacme.com (type and press Enter or Add)"
+            values={d.inboxes}
+            onChange={(next) => set({ inboxes: next })}
+            hint="Outbound sending mailboxes planned for setup"
+          />
+
+          {/* Notes */}
+          <div>
+            <Field label="Notes" id="w-infra-notes" hint="Coordination notes for onboarding and provisioning">
+              <textarea
+                id="w-infra-notes"
+                rows={4}
+                value={d.notes}
+                onChange={(e) => set({ notes: e.target.value })}
+                placeholder="Enter any notes regarding domains purchase, DNS hosting, IT contacts, etc..."
+                className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-ring"
+              />
+            </Field>
           </div>
-        </>
+        </div>
       )}
 
-      {/* Technical Contact (shared) */}
+      {/* Technical Contact */}
       <div>
         <SectionTitle>Technical Contact</SectionTitle>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
           <Field label="Name" id="w-tc-name">
-            <Input id="w-tc-name" value={d.tech_contact_name} placeholder="John Smith"
-              onChange={(e) => set({ tech_contact_name: e.target.value })} />
+            <Input
+              id="w-tc-name"
+              value={d.tech_contact_name}
+              placeholder="John Smith"
+              onChange={(e) => set({ tech_contact_name: e.target.value })}
+            />
           </Field>
           <Field label="Email" id="w-tc-email">
-            <Input id="w-tc-email" type="email" value={d.tech_contact_email} placeholder="john@acme.com"
-              onChange={(e) => set({ tech_contact_email: e.target.value })} />
+            <Input
+              id="w-tc-email"
+              type="email"
+              value={d.tech_contact_email}
+              placeholder="john@acme.com"
+              onChange={(e) => set({ tech_contact_email: e.target.value })}
+            />
           </Field>
           <Field label="Role" id="w-tc-role">
-            <Input id="w-tc-role" value={d.tech_contact_role} placeholder="IT Manager, CTO…"
-              onChange={(e) => set({ tech_contact_role: e.target.value })} />
+            <Input
+              id="w-tc-role"
+              value={d.tech_contact_role}
+              placeholder="IT Manager, CTO…"
+              onChange={(e) => set({ tech_contact_role: e.target.value })}
+            />
           </Field>
         </div>
       </div>
@@ -755,8 +911,8 @@ function Step7({ d }: { d: WizardData }) {
     { label: "Business Context", ok: !!(d.service_description || d.company_description), optional: true },
     { label: "ICP", ok: !!(d.icp_description || d.target_industries.length > 0), optional: true },
     { label: "Infrastructure", ok: d.infrastructure_strategy === "existing"
-        ? (d.selected_inbox_emails.length > 0 || d.selected_domain_names.length > 0)
-        : !!(d.client_domains_text || d.client_inboxes_text), optional: true },
+        ? !!d.primary_domain
+        : d.outbound_domains.length > 0 || d.inboxes.length > 0, optional: true },
     { label: "HubSpot", ok: d.hubspot_connected, optional: true },
     { label: "Cal.com", ok: !!d.calcom_link, optional: true },
   ];
@@ -773,8 +929,8 @@ function Step7({ d }: { d: WizardData }) {
     ["Automation", `Level ${d.automation_level}`],
     ["AI Tone", d.ai_tone],
     ["Infrastructure", d.infrastructure_strategy === "existing"
-      ? `${d.selected_inbox_emails.length} inbox(es), ${d.selected_domain_names.length} domain(s)`
-      : "Client-owned (checklist)"],
+      ? `Existing (${d.primary_domain || "no primary domain"}), ${d.inboxes.length} inbox(es), ${d.outbound_domains.length} domain(s)`
+      : `Needs Setup: ${d.inboxes.length} planned inbox(es), ${d.outbound_domains.length} planned domain(s)`],
     ["HubSpot", d.hubspot_connected ? `Connected (${d.hubspot_portal_id || "no portal ID"})` : "Not connected"],
     ["Cal.com", d.calcom_link || "—"],
     ["Slack Channel", d.slack_create_channel ? `#client-${d.slug}` : "Not creating"],
@@ -864,6 +1020,11 @@ export function ClientOnboardingWizard({ open, onClose }: { open: boolean; onClo
       if (!data.contract_start) return "Contract start date is required";
       if (!data.account_executive.trim()) return "Account executive is required";
     }
+    if (step === 3) {
+      if (data.infrastructure_strategy === "existing") {
+        if (!data.primary_domain.trim()) return "Primary domain is required for existing infrastructure strategy";
+      }
+    }
     return null;
   }
 
@@ -888,7 +1049,7 @@ export function ClientOnboardingWizard({ open, onClose }: { open: boolean; onClo
     setError(null);
 
     try {
-      // Build config JSONB payload (ICP targets, team, infra details, misc)
+      // Build config JSONB payload (ICP targets, team, misc)
       const configPayload = {
         // ICP
         target_industries: data.target_industries.length > 0 ? data.target_industries : null,
@@ -901,15 +1062,6 @@ export function ClientOnboardingWizard({ open, onClose }: { open: boolean; onClo
         common_objections: data.common_objections || null,
         competitors: data.competitors || null,
         case_studies: data.case_studies || null,
-        // Infrastructure
-        infrastructure_checklist: data.infrastructure_strategy === "client_owned" ? data.infra_checklist : null,
-        client_domains: data.client_domains_text || null,
-        client_inboxes: data.client_inboxes_text || null,
-        tech_contact: (data.tech_contact_name || data.tech_contact_email) ? {
-          name: data.tech_contact_name,
-          email: data.tech_contact_email,
-          role: data.tech_contact_role,
-        } : null,
         // Integrations
         calcom_event_type: data.calcom_event_type || null,
         calcom_meeting_duration: data.calcom_meeting_duration ? Number(data.calcom_meeting_duration) : null,
@@ -952,7 +1104,20 @@ export function ClientOnboardingWizard({ open, onClose }: { open: boolean; onClo
         ai_tone: data.ai_tone,
         ai_knowledge_base: data.ai_knowledge_base || null,
         forbidden_claims: data.forbidden_claims || null,
+        // Infrastructure (New columns mapped directly to API payload)
         infrastructure_strategy: data.infrastructure_strategy,
+        primary_domain: data.infrastructure_strategy === "existing" ? data.primary_domain || null : null,
+        outbound_domains: data.outbound_domains,
+        inboxes: data.inboxes,
+        mail_provider: data.infrastructure_strategy === "existing" ? data.mail_provider : null,
+        technical_contact: (data.tech_contact_name || data.tech_contact_email) ? {
+          name: data.tech_contact_name,
+          email: data.tech_contact_email,
+          role: data.tech_contact_role,
+        } : {},
+        access_checklist: data.infrastructure_strategy === "existing" ? data.access_checklist : {},
+        setup_checklist: data.infrastructure_strategy === "setup_required" ? data.setup_checklist : {},
+        notes: data.infrastructure_strategy === "setup_required" ? data.notes || null : null,
         config: configPayload,
       };
 
@@ -965,19 +1130,6 @@ export function ClientOnboardingWizard({ open, onClose }: { open: boolean; onClo
       if (!clientRes.ok) throw new Error(clientBody.error || "Failed to create client");
 
       const slug = clientBody.client.slug;
-
-      // Assign existing infrastructure (fire-and-forget)
-      if (data.infrastructure_strategy === "existing" &&
-          (data.selected_inbox_emails.length > 0 || data.selected_domain_names.length > 0)) {
-        fetch(`/api/dashboard/clients/${slug}/assign-infrastructure`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            inbox_emails: data.selected_inbox_emails,
-            domain_names: data.selected_domain_names,
-          }),
-        }).catch(() => {});
-      }
 
       await mutate("/api/dashboard/clients");
       toast.success(`Client "${data.company_name}" activated`);

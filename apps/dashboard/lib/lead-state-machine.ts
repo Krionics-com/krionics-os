@@ -4,6 +4,7 @@ export type LeadState =
   | "raw_imported"
   | "deduplicated"
   | "enrichment_pending"
+  | "enrichment_failed"
   | "enriched"
   | "personalized"
   | "campaign_ready"
