@@ -182,11 +182,11 @@ export function createSequenceGenerationWorker(): Worker<SequenceGenerationJob> 
           traceId
         });
       } else {
-        // "auto" or "ai" — push to Instantly immediately
+        // "auto" — push to Instantly immediately
         const campaignId = client.instantly_config?.campaign_id;
         if (!campaignId) {
           throw new Error(
-            `Client ${payload.clientId} has review_mode=${reviewMode} but no instantly_config.campaign_id`
+            `Client ${payload.clientId} has review_mode=auto but no instantly_config.campaign_id`
           );
         }
 

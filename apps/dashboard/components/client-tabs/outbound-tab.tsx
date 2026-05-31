@@ -524,13 +524,15 @@ function SequenceSubTab({
   slug: string;
   isAdmin: boolean;
 }) {
-  const initial: SequenceConfig = client.sequence_config ?? {
-    steps: [{ step: 1, name: "Initial Email", delay_days: 0 }],
-  };
+  const DEFAULT_STEPS: SequenceStep[] = [
+    { step: 1, name: "Initial Email", delay_days: 0 },
+    { step: 2, name: "Follow-up 1", delay_days: 3 },
+    { step: 3, name: "Follow-up 2", delay_days: 7 },
+    { step: 4, name: "Breakup", delay_days: 14 },
+  ];
+  const initial: SequenceConfig = client.sequence_config ?? { steps: DEFAULT_STEPS };
   const [steps, setSteps] = useState<SequenceStep[]>(
-    initial.steps?.length > 0
-      ? initial.steps
-      : [{ step: 1, name: "Initial Email", delay_days: 0 }]
+    initial.steps?.length > 0 ? initial.steps : DEFAULT_STEPS
   );
   const [saving, setSaving] = useState(false);
 
@@ -835,24 +837,19 @@ function InstantlySubTab({
 // ──────────────────────────────────────────────
 
 const REVIEW_MODE_OPTIONS: Array<{
-  value: "human" | "ai" | "auto";
+  value: "human" | "auto";
   label: string;
   description: string;
 }> = [
   {
     value: "human",
     label: "Human Review",
-    description: "Every AI sequence is reviewed by a human before sending.",
-  },
-  {
-    value: "ai",
-    label: "AI Review",
-    description: "An AI quality check approves/rejects sequences automatically.",
+    description: "Every AI sequence is reviewed by an operator before sending. Recommended.",
   },
   {
     value: "auto",
     label: "Auto",
-    description: "Sequences are pushed to Instantly immediately after generation.",
+    description: "Sequences are pushed to Instantly immediately after generation. No review.",
   },
 ];
 
@@ -865,9 +862,8 @@ function ReviewModeSubTab({
   slug: string;
   isAdmin: boolean;
 }) {
-  const [reviewMode, setReviewMode] = useState<"human" | "ai" | "auto">(
-    client.review_mode ?? "human"
-  );
+  const initialMode = (client.review_mode === "auto" ? "auto" : "human") as "human" | "auto";
+  const [reviewMode, setReviewMode] = useState<"human" | "auto">(initialMode);
   const [saving, setSaving] = useState(false);
 
   async function handleSave() {
@@ -894,7 +890,7 @@ function ReviewModeSubTab({
         subtitle="Choose how AI-generated sequences are handled before sending."
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {REVIEW_MODE_OPTIONS.map((opt) => (
           <label
             key={opt.value}

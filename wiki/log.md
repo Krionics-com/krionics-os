@@ -1,5 +1,19 @@
 # Wiki Log
 
+## [2026-05-31] audit-fix | C2 — sequence defaults + review mode cleanup (Issues 4, 6, 13, 15, 20)
+- Migration 20260531000002: default `sequence_config` now 4-step (Initial / FU1 / FU2 / Breakup); backfills clients still on 1-step.
+- Tightened review_mode CHECK constraint to `('human','auto')`; migrated any existing 'ai' values to 'human'.
+- Removed unimplemented "AI Review" radio card from outbound tab; sequence-generation worker no longer routes 'ai' to auto.
+- Outbound config API validates review_mode against the new 2-value set.
+- SequenceSubTab seeds the 4-step default for new clients.
+
+## [2026-05-31] audit-fix | C1 — outbound automation core (Issues 1, 2, 3, 19)
+- New worker `outbound-scheduler.ts` runs every hour, scans `outbound_active=true` clients, checks cadence vs `last_apollo_pull_at`, maps ICP→Apollo params, enqueues `apollo_import`.
+- New helper `icp-to-apollo.ts`: `mapIcpToApolloSearchParams()` translates `clients.config` ICP fields into Apollo `mixed_people/search` parameters.
+- Migration 20260531000001 adds `clients.last_apollo_pull_at` + partial index.
+- `launch-outbound` API now exposes GET (returns preflight checklist) and POST blocks launch when checklist incomplete; returns missing items.
+- OutboundTab renders preflight checklist and disables Launch until ready.
+
 ## [2026-05-20] setup | initialize wiki structure and schema
 - Created AGENTS.md and wiki base folders.
 - Added index.md and log.md.
