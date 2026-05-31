@@ -21,15 +21,13 @@ export async function GET(req: NextRequest, { params }: Params) {
       SELECT
         c.*,
         c.calcom_link,
-        COUNT(DISTINCT ca.id) FILTER (WHERE ca.status = 'active')::int AS active_campaigns,
-        COALESCE(SUM(ca.emails_sent), 0)::int AS total_emails_sent,
-        COALESCE(
-          ROUND(SUM(ca.replies_received)::numeric / NULLIF(SUM(ca.emails_sent), 0) * 100, 1),
-          0
-        )::float AS reply_rate,
-        COALESCE(SUM(ca.meetings_booked), 0)::int AS total_meetings_booked
+        COUNT(DISTINCT l.id) FILTER (WHERE l.lead_status NOT IN ('suppressed','rejected','opted_out','bounced'))::int AS leads_in_pipeline,
+        COUNT(DISTINCT l.id) FILTER (WHERE l.lead_status IN ('queued_for_sending','sending_active'))::int AS leads_sending,
+        COUNT(DISTINCT l.id) FILTER (WHERE l.lead_status = 'reply_received')::int AS replies_received,
+        COUNT(DISTINCT m.id)::int AS total_meetings_booked
       FROM clients c
-      LEFT JOIN campaigns ca ON ca.client_id = c.id
+      LEFT JOIN leads l ON l.client_id = c.id
+      LEFT JOIN meetings m ON m.client_id = c.id
       WHERE c.slug = ${slug}
       GROUP BY c.id
     `;

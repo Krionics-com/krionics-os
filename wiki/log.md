@@ -1,5 +1,12 @@
 # Wiki Log
 
+## [2026-05-31] audit-fix | C3 — Instantly campaign dropdown + metric rename (Issues 7, 9)
+- Added `listInstantlyCampaigns()` client function and re-exported from `@krionics/workers`.
+- New API `GET /api/dashboard/integrations/instantly/campaigns` returns real Instantly campaigns.
+- Outbound tab Instantly subtab now renders a dropdown when the API succeeds; falls back to manual paste with a warning when the key is unconfigured or the API errors.
+- Replaced `active_campaigns` (deprecated campaigns table JOIN) with `leads_in_pipeline`, `leads_sending`, `replies_received` everywhere (clients list, profile KPIs, list API, profile API).
+- Profile KPI cards: Leads in Pipeline / Sending / Replies / Meetings Booked.
+
 ## [2026-05-31] audit-fix | C2 — sequence defaults + review mode cleanup (Issues 4, 6, 13, 15, 20)
 - Migration 20260531000002: default `sequence_config` now 4-step (Initial / FU1 / FU2 / Breakup); backfills clients still on 1-step.
 - Tightened review_mode CHECK constraint to `('human','auto')`; migrated any existing 'ai' values to 'human'.

@@ -215,9 +215,9 @@ export default function ClientProfilePage({
       {/* KPI cards — always shown */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: "Active Campaigns", value: client.active_campaigns ?? 0 },
-          { label: "Emails Sent", value: (client.total_emails_sent ?? 0).toLocaleString() },
-          { label: "Reply Rate", value: `${Number(client.reply_rate ?? 0).toFixed(1)}%` },
+          { label: "Leads in Pipeline", value: client.leads_in_pipeline ?? 0 },
+          { label: "Sending", value: client.leads_sending ?? 0 },
+          { label: "Replies", value: client.replies_received ?? 0 },
           { label: "Meetings Booked", value: client.total_meetings_booked ?? 0 },
         ].map((kpi) => (
           <Card key={kpi.label}>

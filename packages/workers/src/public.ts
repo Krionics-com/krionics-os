@@ -20,5 +20,9 @@ export {
   analyticsAggregateQueue,
   analyticsIntelligenceQueue,
   bookingReminderQueue,
+  outboundSchedulerQueue,
   moveToDLQ
 } from "./queues.js";
+
+export { listInstantlyCampaigns, getInstantlyCampaign } from "./clients/instantly-outbound.js";
+export type { InstantlyCampaignSummary } from "./clients/instantly-outbound.js";

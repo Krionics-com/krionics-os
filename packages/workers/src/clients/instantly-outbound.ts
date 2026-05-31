@@ -73,3 +73,27 @@ export async function getInstantlyCampaign(
 
   return response.json() as Promise<{ id: string; name: string; status: string }>;
 }
+
+export interface InstantlyCampaignSummary {
+  id: string;
+  name: string;
+  status: string;
+}
+
+export async function listInstantlyCampaigns(
+  apiKey: string
+): Promise<InstantlyCampaignSummary[]> {
+  const response = await fetch(
+    `${BASE}/campaign/list?api_key=${encodeURIComponent(apiKey)}`
+  );
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Instantly list campaigns failed: ${response.status} ${text}`);
+  }
+  const data = (await response.json()) as
+    | { campaigns?: Array<{ id: string; name: string; status?: string }> }
+    | Array<{ id: string; name: string; status?: string }>;
+
+  const list = Array.isArray(data) ? data : data.campaigns ?? [];
+  return list.map((c) => ({ id: c.id, name: c.name, status: c.status ?? "unknown" }));
+}

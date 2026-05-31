@@ -28,8 +28,10 @@ type Client = {
   status: string;
   automation_level: number;
   mrr_usd: number;
-  active_campaigns: number;
-  reply_rate: number;
+  leads_in_pipeline: number;
+  replies_received: number;
+  leads_sending: number;
+  outbound_active: boolean;
   onboarding_stage: string;
   config?: any;
 };
@@ -238,8 +240,8 @@ export default function ClientsPage() {
                   <TableRow>
                     <TableHead>Client</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Active Campaigns</TableHead>
-                    <TableHead className="text-right">Reply Rate</TableHead>
+                    <TableHead className="text-right">Leads in Pipeline</TableHead>
+                    <TableHead className="text-right">Sending</TableHead>
                     <TableHead>Automation</TableHead>
                     <TableHead className="text-right">MRR</TableHead>
                     <TableHead>Stage</TableHead>
@@ -264,10 +266,10 @@ export default function ClientsPage() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right font-mono">
-                        {client.active_campaigns}
+                        {client.leads_in_pipeline}
                       </TableCell>
                       <TableCell className="text-right font-mono">
-                        {Number(client.reply_rate).toFixed(1)}%
+                        {client.leads_sending}
                       </TableCell>
                       <TableCell>
                         Level {client.automation_level}

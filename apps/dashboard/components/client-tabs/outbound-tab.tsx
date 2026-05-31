@@ -674,6 +674,32 @@ function InstantlySubTab({
   const [timezone, setTimezone] = useState(initial.timezone ?? "America/New_York");
   const [saving, setSaving] = useState(false);
 
+  type InstantlyCampaign = { id: string; name: string; status: string };
+  const [campaignList, setCampaignList] = useState<InstantlyCampaign[] | null>(null);
+  const [campaignsError, setCampaignsError] = useState<string | null>(null);
+  const [campaignsLoading, setCampaignsLoading] = useState(false);
+
+  async function loadCampaigns() {
+    setCampaignsLoading(true);
+    setCampaignsError(null);
+    try {
+      const res = await fetch("/api/dashboard/integrations/instantly/campaigns");
+      const body = await res.json();
+      if (!res.ok) {
+        setCampaignsError(body.error ?? "Failed to load Instantly campaigns");
+        setCampaignList([]);
+        return;
+      }
+      setCampaignList(body.campaigns ?? []);
+    } catch (e: any) {
+      setCampaignsError(e.message ?? "Failed to load Instantly campaigns");
+    } finally {
+      setCampaignsLoading(false);
+    }
+  }
+
+  useEffect(() => { loadCampaigns(); }, []);
+
   function addEmail() {
     const trimmed = emailInput.trim();
     if (!trimmed) return;
@@ -727,14 +753,43 @@ function InstantlySubTab({
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        <Field label="Campaign ID" id="instantly-campaign-id">
-          <Input
-            id="instantly-campaign-id"
-            placeholder="e.g. camp_abc123"
-            value={campaignId}
-            onChange={(e) => isAdmin && setCampaignId(e.target.value)}
-            disabled={!isAdmin}
-          />
+        <Field label="Campaign" id="instantly-campaign-id">
+          {campaignList && campaignList.length > 0 ? (
+            <select
+              id="instantly-campaign-id"
+              value={campaignId}
+              onChange={(e) => isAdmin && setCampaignId(e.target.value)}
+              disabled={!isAdmin}
+              className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <option value="">— Select a campaign —</option>
+              {campaignList.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name} ({c.status})
+                </option>
+              ))}
+            </select>
+          ) : (
+            <div className="space-y-1.5">
+              <Input
+                id="instantly-campaign-id"
+                placeholder={campaignsLoading ? "Loading…" : "Paste campaign ID"}
+                value={campaignId}
+                onChange={(e) => isAdmin && setCampaignId(e.target.value)}
+                disabled={!isAdmin || campaignsLoading}
+              />
+              {campaignsError && (
+                <p className="text-xs text-amber-600">
+                  {campaignsError} — paste ID manually below.
+                </p>
+              )}
+              {!campaignsError && campaignList?.length === 0 && (
+                <p className="text-xs text-muted-foreground">
+                  No campaigns found in Instantly account.
+                </p>
+              )}
+            </div>
+          )}
         </Field>
 
         <Field label="Daily Send Limit" id="instantly-daily-limit">
