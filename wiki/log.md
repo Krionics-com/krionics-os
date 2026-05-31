@@ -1,5 +1,10 @@
 # Wiki Log
 
+## [2026-05-31] audit-fix | C6 — Infra mock removal (Issue 16)
+- Removed hardcoded `baseInboxes` and `baseDomains` arrays (krionics.com, krionics-biz.com etc.) from inboxes / domains / domain detail APIs. No more deterministic-hash reputation/DNS/warmup fake values.
+- APIs now return real `email_events` aggregates only; reputation/DNS/warmup fields are `null` until a real inbox-monitoring integration is in place.
+- Wrote `wiki/projects/2026-05-31-audit-fixes.md` documenting all 20 issues and the V2 backlog.
+
 ## [2026-05-31] audit-fix | C5 — Operator UX: review diagnostics, Apollo preview, per-client cost (Issues 10, 14, 17, 18)
 - Review queue API: wrapped SQL in try/catch with structured logging (status/intent/sla/search params). Returns error message in JSON; review page now surfaces `error.message` instead of generic "Failed to load review items."
 - New API `GET /api/dashboard/clients/[slug]/apollo-preview` returns the constructed Apollo search params + validation result. Outbound tab Apollo subtab gained a "Preview Apollo Search" button that displays the JSON params before launch.
