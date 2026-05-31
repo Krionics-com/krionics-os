@@ -26,3 +26,6 @@ export {
 
 export { listInstantlyCampaigns, getInstantlyCampaign } from "./clients/instantly-outbound.js";
 export type { InstantlyCampaignSummary } from "./clients/instantly-outbound.js";
+
+export { mapIcpToApolloSearchParams, validateApolloSearchParams } from "./icp-to-apollo.js";
+export type { ClientIcpConfig, ApolloPullConfig } from "./icp-to-apollo.js";

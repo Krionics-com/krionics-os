@@ -32,6 +32,28 @@ export async function GET(req: NextRequest, { params }: Params) {
       GROUP BY c.id
     `;
 
+    if (client) {
+      const [costRow] = await sql<{
+        cost_today: number;
+        cost_7d: number;
+        cost_30d: number;
+        invocations_30d: number;
+      }[]>`
+        SELECT
+          COALESCE(SUM(cost_usd_micro) FILTER (WHERE invoked_at >= DATE_TRUNC('day', NOW()))::double precision / 1000000.0, 0) AS cost_today,
+          COALESCE(SUM(cost_usd_micro) FILTER (WHERE invoked_at >= NOW() - INTERVAL '7 days')::double precision / 1000000.0, 0) AS cost_7d,
+          COALESCE(SUM(cost_usd_micro) FILTER (WHERE invoked_at >= NOW() - INTERVAL '30 days')::double precision / 1000000.0, 0) AS cost_30d,
+          COUNT(id) FILTER (WHERE invoked_at >= NOW() - INTERVAL '30 days')::int AS invocations_30d
+        FROM ai_invocations
+        WHERE client_id = ${client.id}::uuid
+      `.catch(() => [undefined as any]);
+
+      client.ai_cost_today = costRow?.cost_today ?? 0;
+      client.ai_cost_7d = costRow?.cost_7d ?? 0;
+      client.ai_cost_30d = costRow?.cost_30d ?? 0;
+      client.ai_invocations_30d = costRow?.invocations_30d ?? 0;
+    }
+
     if (!client) {
       return NextResponse.json({ error: "Client not found" }, { status: 404 });
     }

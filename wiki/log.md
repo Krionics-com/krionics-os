@@ -1,5 +1,11 @@
 # Wiki Log
 
+## [2026-05-31] audit-fix | C5 — Operator UX: review diagnostics, Apollo preview, per-client cost (Issues 10, 14, 17, 18)
+- Review queue API: wrapped SQL in try/catch with structured logging (status/intent/sla/search params). Returns error message in JSON; review page now surfaces `error.message` instead of generic "Failed to load review items."
+- New API `GET /api/dashboard/clients/[slug]/apollo-preview` returns the constructed Apollo search params + validation result. Outbound tab Apollo subtab gained a "Preview Apollo Search" button that displays the JSON params before launch.
+- Lead detail page (`/dashboard/leads/[id]`) was already in place with timeline / sequences / replies / state history; no change needed.
+- Client profile detail API now joins `ai_invocations` and returns ai_cost_today / ai_cost_7d / ai_cost_30d / ai_invocations_30d. Overview tab renders an AI Spend strip above Recent Activity.
+
 ## [2026-05-31] audit-fix | C4 — AI ops cleanup: real metrics, prompt overrides (Issues 5, 8, 11, 12)
 - Removed all hardcoded fallback values (`0.42`, `8420`, `42%` cache rate, random baseline charts, `42.50` ai_cost) from analytics + stats APIs. Returns real DB aggregations with 0 when no data.
 - Stats endpoint now queries `ai_invocations` for today's real cost.

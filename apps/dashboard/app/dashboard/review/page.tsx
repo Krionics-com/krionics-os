@@ -389,7 +389,11 @@ export default function ReviewQueuePage() {
             </div>
           ) : error ? (
             <ErrorState
-              message="Failed to load review items."
+              message={
+                error?.message
+                  ? `Failed to load review items: ${error.message}`
+                  : "Failed to load review items."
+              }
               onRetry={() => mutate()}
             />
           ) : data?.data.length === 0 ? (

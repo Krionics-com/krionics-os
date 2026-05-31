@@ -255,6 +255,21 @@ export default function ClientProfilePage({
             {activeTab === 0 && (
               <div className="space-y-6">
                 <div>
+                  <h3 className="text-sm font-semibold mb-3">AI Spend</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                    {[
+                      { label: "Today", value: `$${(client.ai_cost_today ?? 0).toFixed(4)}` },
+                      { label: "Last 7 days", value: `$${(client.ai_cost_7d ?? 0).toFixed(2)}` },
+                      { label: "Last 30 days", value: `$${(client.ai_cost_30d ?? 0).toFixed(2)}` },
+                      { label: "Invocations (30d)", value: (client.ai_invocations_30d ?? 0).toLocaleString() },
+                    ].map((stat) => (
+                      <div key={stat.label} className="rounded-lg border border-border p-3">
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{stat.label}</p>
+                        <p className="text-lg font-bold mt-0.5">{stat.value}</p>
+                      </div>
+                    ))}
+                  </div>
+
                   <h3 className="text-sm font-semibold mb-3">Recent Activity</h3>
                   {recentActivity.length === 0 ? (
                     <p className="text-sm text-muted-foreground">No recent reply items</p>

@@ -207,6 +207,30 @@ function ApolloSubTab({
   const [maxLeads, setMaxLeads] = useState<number>(initial.max_total_leads ?? 2000);
   const [thresholdMin, setThresholdMin] = useState<number>(initial.threshold_min ?? 100);
   const [saving, setSaving] = useState(false);
+  const [previewing, setPreviewing] = useState(false);
+  const [previewResult, setPreviewResult] = useState<{
+    searchParams: Record<string, any>;
+    valid: boolean;
+    missing: string[];
+  } | null>(null);
+
+  async function handlePreview() {
+    setPreviewing(true);
+    setPreviewResult(null);
+    try {
+      const res = await fetch(`/api/dashboard/clients/${slug}/apollo-preview`);
+      const body = await res.json();
+      if (!res.ok) {
+        toast.error(body.error ?? "Preview failed");
+        return;
+      }
+      setPreviewResult(body);
+    } catch (e: any) {
+      toast.error(e.message ?? "Preview failed");
+    } finally {
+      setPreviewing(false);
+    }
+  }
 
   // ICP preview data sourced from client.config
   const config = client.config ?? {};
@@ -358,13 +382,41 @@ function ApolloSubTab({
         )}
       </div>
 
-      {isAdmin && (
-        <div className="flex justify-end">
+      {/* Apollo Search Preview */}
+      {previewResult && (
+        <div className="rounded-lg border border-border p-4 space-y-2 bg-muted/30">
+          <div className="flex items-center gap-2">
+            <h4 className="text-sm font-semibold">Apollo Search Parameters</h4>
+            {previewResult.valid ? (
+              <Badge variant="secondary" className="text-xs">Valid</Badge>
+            ) : (
+              <Badge variant="destructive" className="text-xs">Missing fields</Badge>
+            )}
+          </div>
+          {!previewResult.valid && previewResult.missing.length > 0 && (
+            <p className="text-xs text-amber-600">
+              Missing: {previewResult.missing.join(", ")}
+            </p>
+          )}
+          <pre className="text-xs bg-background p-3 rounded border border-border overflow-x-auto">
+            {JSON.stringify(previewResult.searchParams, null, 2)}
+          </pre>
+          <p className="text-xs text-muted-foreground">
+            These are the parameters the scheduler will send to Apollo's mixed_people/search endpoint.
+          </p>
+        </div>
+      )}
+
+      <div className="flex justify-end gap-2">
+        <Button size="sm" variant="outline" onClick={handlePreview} disabled={previewing}>
+          {previewing ? "Loading…" : "Preview Apollo Search"}
+        </Button>
+        {isAdmin && (
           <Button size="sm" onClick={handleSave} disabled={saving}>
             {saving ? "Saving…" : "Save Apollo Config"}
           </Button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
