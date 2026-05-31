@@ -219,9 +219,9 @@ export default function ClientProfilePage({
       {/* KPI cards — always shown */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: "Active Campaigns", value: client.active_campaigns ?? 0 },
-          { label: "Emails Sent", value: (client.total_emails_sent ?? 0).toLocaleString() },
-          { label: "Reply Rate", value: `${Number(client.reply_rate ?? 0).toFixed(1)}%` },
+          { label: "Leads in Pipeline", value: client.leads_in_pipeline ?? 0 },
+          { label: "Sending", value: client.leads_sending ?? 0 },
+          { label: "Replies", value: client.replies_received ?? 0 },
           { label: "Meetings Booked", value: client.total_meetings_booked ?? 0 },
         ].map((kpi) => (
           <Card key={kpi.label}>
@@ -280,6 +280,21 @@ export default function ClientProfilePage({
                 )}
 
                 <div>
+                  <h3 className="text-sm font-semibold mb-3">AI Spend</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                    {[
+                      { label: "Today", value: `$${(client.ai_cost_today ?? 0).toFixed(4)}` },
+                      { label: "Last 7 days", value: `$${(client.ai_cost_7d ?? 0).toFixed(2)}` },
+                      { label: "Last 30 days", value: `$${(client.ai_cost_30d ?? 0).toFixed(2)}` },
+                      { label: "Invocations (30d)", value: (client.ai_invocations_30d ?? 0).toLocaleString() },
+                    ].map((stat) => (
+                      <div key={stat.label} className="rounded-lg border border-border p-3">
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{stat.label}</p>
+                        <p className="text-lg font-bold mt-0.5">{stat.value}</p>
+                      </div>
+                    ))}
+                  </div>
+
                   <h3 className="text-sm font-semibold mb-3">Recent Activity</h3>
                   {recentActivity.length === 0 ? (
                     <p className="text-sm text-muted-foreground">No recent reply items</p>

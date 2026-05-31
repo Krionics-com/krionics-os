@@ -32,8 +32,8 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   }
 
   // Validate review_mode if present
-  if (updates.review_mode && !["human", "ai", "auto"].includes(updates.review_mode)) {
-    return NextResponse.json({ error: "review_mode must be human, ai, or auto" }, { status: 400 });
+  if (updates.review_mode && !["human", "auto"].includes(updates.review_mode)) {
+    return NextResponse.json({ error: "review_mode must be human or auto" }, { status: 400 });
   }
 
   const setClauses = Object.entries(updates).map(([key, val]) => {

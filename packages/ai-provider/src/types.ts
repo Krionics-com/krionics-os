@@ -13,11 +13,18 @@ import type {
   AnalyticsOutput
 } from "@krionics/schema";
 
+export interface PromptOverride {
+  system_prompt?: string;
+  model?: string;
+  temperature?: number;
+  max_tokens?: number;
+}
+
 export interface AIProvider {
-  classify(input: ClassifyInput): Promise<ClassificationOutput>;
-  generateDraft(input: DraftInput): Promise<DraftOutput>;
-  extractSignals(input: SignalExtractionInput): Promise<SignalExtractionOutput>;
-  generateSequence(input: SequenceInput): Promise<SequenceOutput>;
-  analyzeObjection(input: ObjectionInput): Promise<ObjectionOutput>;
-  analyzePerformance(input: AnalyticsInput): Promise<AnalyticsOutput>;
+  classify(input: ClassifyInput, override?: PromptOverride): Promise<ClassificationOutput>;
+  generateDraft(input: DraftInput, override?: PromptOverride): Promise<DraftOutput>;
+  extractSignals(input: SignalExtractionInput, override?: PromptOverride): Promise<SignalExtractionOutput>;
+  generateSequence(input: SequenceInput, override?: PromptOverride): Promise<SequenceOutput>;
+  analyzeObjection(input: ObjectionInput, override?: PromptOverride): Promise<ObjectionOutput>;
+  analyzePerformance(input: AnalyticsInput, override?: PromptOverride): Promise<AnalyticsOutput>;
 }

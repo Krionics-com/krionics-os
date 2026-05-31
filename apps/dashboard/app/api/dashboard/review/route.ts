@@ -134,39 +134,57 @@ export async function GET(req: NextRequest) {
     orderByClause = sortDirection === "desc" ? sql`ri.created_at DESC` : sql`ri.created_at ASC`;
   }
 
-  const rows = await sql<any[]>`
-    SELECT
-      ri.id,
-      ri.created_at,
-      ri.sla_expires_at,
-      l.email as lead_email,
-      l.first_name,
-      l.last_name,
-      l.company,
-      l.title,
-      rc.intent,
-      rc.confidence,
-      o.name as assigned_operator_name,
-      o.email as assigned_operator_email,
-      rr.body_text
-    FROM reply_items ri
-    LEFT JOIN reply_classifications rc ON rc.id = ri.classification_id
-    LEFT JOIN leads l ON l.id = ri.lead_id
-    LEFT JOIN raw_replies rr ON rr.id = ri.raw_reply_id
-    LEFT JOIN operators o ON o.id = ri.assigned_to_operator_id
-    WHERE ${whereClause}
-    ORDER BY ${orderByClause}
-    LIMIT ${limit} OFFSET ${offset}
-  `;
+  let rows: any[];
+  let countRow: { count: number } | undefined;
+  try {
+    rows = await sql<any[]>`
+      SELECT
+        ri.id,
+        ri.created_at,
+        ri.sla_expires_at,
+        l.email as lead_email,
+        l.first_name,
+        l.last_name,
+        l.company,
+        l.title,
+        rc.intent,
+        rc.confidence,
+        o.name as assigned_operator_name,
+        o.email as assigned_operator_email,
+        rr.body_text
+      FROM reply_items ri
+      LEFT JOIN reply_classifications rc ON rc.id = ri.classification_id
+      LEFT JOIN leads l ON l.id = ri.lead_id
+      LEFT JOIN raw_replies rr ON rr.id = ri.raw_reply_id
+      LEFT JOIN operators o ON o.id = ri.assigned_to_operator_id
+      WHERE ${whereClause}
+      ORDER BY ${orderByClause}
+      LIMIT ${limit} OFFSET ${offset}
+    `;
 
-  const [countRow] = await sql<{ count: number }[]>`
-    SELECT COUNT(*)::int as count
-    FROM reply_items ri
-    LEFT JOIN reply_classifications rc ON rc.id = ri.classification_id
-    LEFT JOIN leads l ON l.id = ri.lead_id
-    LEFT JOIN raw_replies rr ON rr.id = ri.raw_reply_id
-    WHERE ${whereClause}
-  `;
+    [countRow] = await sql<{ count: number }[]>`
+      SELECT COUNT(*)::int as count
+      FROM reply_items ri
+      LEFT JOIN reply_classifications rc ON rc.id = ri.classification_id
+      LEFT JOIN leads l ON l.id = ri.lead_id
+      LEFT JOIN raw_replies rr ON rr.id = ri.raw_reply_id
+      WHERE ${whereClause}
+    `;
+  } catch (err: any) {
+    console.error("[review-queue] SQL error:", {
+      message: err?.message,
+      code: err?.code,
+      detail: err?.detail,
+      status: statusParam,
+      intent: intentParam,
+      sla: slaParam,
+      search: searchParam,
+    });
+    return NextResponse.json(
+      { error: err?.message ?? "Database error loading review queue" },
+      { status: 500 }
+    );
+  }
 
   const data = rows.map((row) => {
     const expiresAt = new Date(row.sla_expires_at);

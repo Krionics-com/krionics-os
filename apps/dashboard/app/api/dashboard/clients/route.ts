@@ -27,14 +27,13 @@ export async function GET(req: NextRequest) {
           c.sales_lead_name, c.service_description, c.icp_description,
           c.positioning_statement, c.calcom_link,
           c.slack_webhook_url, c.slack_channel_id,
+          c.outbound_active,
           c.created_at, c.updated_at,
-          COUNT(DISTINCT ca.id) FILTER (WHERE ca.status = 'active')::int AS active_campaigns,
-          COALESCE(
-            ROUND(SUM(ca.replies_received)::numeric / NULLIF(SUM(ca.emails_sent), 0) * 100, 1),
-            0
-          )::float AS reply_rate
+          COUNT(DISTINCT l.id) FILTER (WHERE l.lead_status NOT IN ('suppressed','rejected','opted_out','bounced'))::int AS leads_in_pipeline,
+          COUNT(DISTINCT l.id) FILTER (WHERE l.lead_status = 'reply_received')::int AS replies_received,
+          COUNT(DISTINCT l.id) FILTER (WHERE l.lead_status IN ('queued_for_sending','sending_active'))::int AS leads_sending
         FROM clients c
-        LEFT JOIN campaigns ca ON ca.client_id = c.id
+        LEFT JOIN leads l ON l.client_id = c.id
         WHERE c.id = ANY(${operator.client_access})
         GROUP BY c.id
         ORDER BY c.company_name
@@ -50,14 +49,13 @@ export async function GET(req: NextRequest) {
           c.sales_lead_name, c.service_description, c.icp_description,
           c.positioning_statement, c.calcom_link,
           c.slack_webhook_url, c.slack_channel_id,
+          c.outbound_active,
           c.created_at, c.updated_at,
-          COUNT(DISTINCT ca.id) FILTER (WHERE ca.status = 'active')::int AS active_campaigns,
-          COALESCE(
-            ROUND(SUM(ca.replies_received)::numeric / NULLIF(SUM(ca.emails_sent), 0) * 100, 1),
-            0
-          )::float AS reply_rate
+          COUNT(DISTINCT l.id) FILTER (WHERE l.lead_status NOT IN ('suppressed','rejected','opted_out','bounced'))::int AS leads_in_pipeline,
+          COUNT(DISTINCT l.id) FILTER (WHERE l.lead_status = 'reply_received')::int AS replies_received,
+          COUNT(DISTINCT l.id) FILTER (WHERE l.lead_status IN ('queued_for_sending','sending_active'))::int AS leads_sending
         FROM clients c
-        LEFT JOIN campaigns ca ON ca.client_id = c.id
+        LEFT JOIN leads l ON l.client_id = c.id
         GROUP BY c.id
         ORDER BY c.company_name
       `;

@@ -61,7 +61,7 @@ export async function GET(req: NextRequest) {
       ORDER BY date ASC
     `;
 
-    // Map rows & fill gaps for past 7 days to guarantee 7 items in response
+    // Real data only: zero-fill missing days, no random baselines.
     const cost_trend: any[] = [];
     const token_trend: any[] = [];
 
@@ -69,50 +69,34 @@ export async function GET(req: NextRequest) {
       const d = new Date();
       d.setDate(d.getDate() - i);
       const dateStr = d.toISOString().slice(0, 10);
-      
+
       const match = trendRows.find((r) => {
-        // Handle postgres date formats
         const rDate = r.date instanceof Date ? r.date.toISOString().slice(0, 10) : String(r.date);
         return rDate === dateStr;
       });
 
-      // Provide realistic local fallbacks so the UI displays beautiful charts even with clean DB
-      const baseCost = match ? match.cost : 0.0;
-      const baseInput = match ? match.input_tokens : 0;
-      const baseOutput = match ? match.output_tokens : 0;
-
-      // Add small mock baseline for visual excellence
-      const finalCost = baseCost > 0 ? baseCost : parseFloat((0.05 + Math.random() * 0.15).toFixed(4));
-      const finalInput = baseInput > 0 ? baseInput : Math.round(1200 + Math.random() * 800);
-      const finalOutput = baseOutput > 0 ? baseOutput : Math.round(600 + Math.random() * 400);
-
       const dayName = d.toLocaleDateString([], { weekday: "short" });
-
-      cost_trend.push({
-        date: dayName,
-        cost: finalCost,
-      });
-
+      cost_trend.push({ date: dayName, cost: match ? match.cost : 0 });
       token_trend.push({
         date: dayName,
-        input: finalInput,
-        output: finalOutput,
+        input: match ? match.input_tokens : 0,
+        output: match ? match.output_tokens : 0,
       });
     }
 
     return NextResponse.json({
-      daily_cost: todayAggs?.daily_cost || 0.42, // Fallback if no entries today
-      daily_tokens: todayAggs?.daily_tokens || 8420,
-      daily_failures: todayAggs?.daily_failures || 0,
-      avg_latency: todayAggs?.avg_latency || 420,
-      cache_hit_rate: 42, // TODO: add real cache tracking in DB when cache layers are implemented
+      daily_cost: todayAggs?.daily_cost ?? 0,
+      daily_tokens: todayAggs?.daily_tokens ?? 0,
+      daily_failures: todayAggs?.daily_failures ?? 0,
+      avg_latency: todayAggs?.avg_latency ?? 0,
+      // cache_hit_rate intentionally omitted: no real cache tracking exists yet.
       regenerate_frequency: parseFloat(regenerate_frequency.toFixed(1)),
       cost_trend,
       token_trend,
       latency_percentiles: {
-        p50: percentiles?.p50 || 320,
-        p75: percentiles?.p75 || 480,
-        p95: percentiles?.p95 || 850,
+        p50: percentiles?.p50 ?? 0,
+        p75: percentiles?.p75 ?? 0,
+        p95: percentiles?.p95 ?? 0,
       }
     });
   } catch (err: any) {

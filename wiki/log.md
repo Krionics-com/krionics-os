@@ -1,5 +1,46 @@
 # Wiki Log
 
+## [2026-05-31] audit-fix | C6 — Infra mock removal (Issue 16)
+- Removed hardcoded `baseInboxes` and `baseDomains` arrays (krionics.com, krionics-biz.com etc.) from inboxes / domains / domain detail APIs. No more deterministic-hash reputation/DNS/warmup fake values.
+- APIs now return real `email_events` aggregates only; reputation/DNS/warmup fields are `null` until a real inbox-monitoring integration is in place.
+- Wrote `wiki/projects/2026-05-31-audit-fixes.md` documenting all 20 issues and the V2 backlog.
+
+## [2026-05-31] audit-fix | C5 — Operator UX: review diagnostics, Apollo preview, per-client cost (Issues 10, 14, 17, 18)
+- Review queue API: wrapped SQL in try/catch with structured logging (status/intent/sla/search params). Returns error message in JSON; review page now surfaces `error.message` instead of generic "Failed to load review items."
+- New API `GET /api/dashboard/clients/[slug]/apollo-preview` returns the constructed Apollo search params + validation result. Outbound tab Apollo subtab gained a "Preview Apollo Search" button that displays the JSON params before launch.
+- Lead detail page (`/dashboard/leads/[id]`) was already in place with timeline / sequences / replies / state history; no change needed.
+- Client profile detail API now joins `ai_invocations` and returns ai_cost_today / ai_cost_7d / ai_cost_30d / ai_invocations_30d. Overview tab renders an AI Spend strip above Recent Activity.
+
+## [2026-05-31] audit-fix | C4 — AI ops cleanup: real metrics, prompt overrides (Issues 5, 8, 11, 12)
+- Removed all hardcoded fallback values (`0.42`, `8420`, `42%` cache rate, random baseline charts, `42.50` ai_cost) from analytics + stats APIs. Returns real DB aggregations with 0 when no data.
+- Stats endpoint now queries `ai_invocations` for today's real cost.
+- Removed "Cache Hit Rate" card (no real cache layer) and its "TODO" tooltip.
+- Migration 20260531000003 seeds 6 global `ai_prompts` rows (classifier / drafter / signal-extractor / sequence-writer / objection-handler / analytics-advisor).
+- New `loadPromptOverride(slug, clientId)` helper in workers — 60s in-memory cache, client-specific row preferred, falls back to global.
+- AIProvider interface extended with optional `PromptOverride` per method (system_prompt / model / temperature / max_tokens). Both Claude and OpenAI providers honour overrides.
+- sequence-generation worker reads the override for `sequence-writer-v1` before calling `generateSequence`.
+
+## [2026-05-31] audit-fix | C3 — Instantly campaign dropdown + metric rename (Issues 7, 9)
+- Added `listInstantlyCampaigns()` client function and re-exported from `@krionics/workers`.
+- New API `GET /api/dashboard/integrations/instantly/campaigns` returns real Instantly campaigns.
+- Outbound tab Instantly subtab now renders a dropdown when the API succeeds; falls back to manual paste with a warning when the key is unconfigured or the API errors.
+- Replaced `active_campaigns` (deprecated campaigns table JOIN) with `leads_in_pipeline`, `leads_sending`, `replies_received` everywhere (clients list, profile KPIs, list API, profile API).
+- Profile KPI cards: Leads in Pipeline / Sending / Replies / Meetings Booked.
+
+## [2026-05-31] audit-fix | C2 — sequence defaults + review mode cleanup (Issues 4, 6, 13, 15, 20)
+- Migration 20260531000002: default `sequence_config` now 4-step (Initial / FU1 / FU2 / Breakup); backfills clients still on 1-step.
+- Tightened review_mode CHECK constraint to `('human','auto')`; migrated any existing 'ai' values to 'human'.
+- Removed unimplemented "AI Review" radio card from outbound tab; sequence-generation worker no longer routes 'ai' to auto.
+- Outbound config API validates review_mode against the new 2-value set.
+- SequenceSubTab seeds the 4-step default for new clients.
+
+## [2026-05-31] audit-fix | C1 — outbound automation core (Issues 1, 2, 3, 19)
+- New worker `outbound-scheduler.ts` runs every hour, scans `outbound_active=true` clients, checks cadence vs `last_apollo_pull_at`, maps ICP→Apollo params, enqueues `apollo_import`.
+- New helper `icp-to-apollo.ts`: `mapIcpToApolloSearchParams()` translates `clients.config` ICP fields into Apollo `mixed_people/search` parameters.
+- Migration 20260531000001 adds `clients.last_apollo_pull_at` + partial index.
+- `launch-outbound` API now exposes GET (returns preflight checklist) and POST blocks launch when checklist incomplete; returns missing items.
+- OutboundTab renders preflight checklist and disables Launch until ready.
+
 ## [2026-05-20] setup | initialize wiki structure and schema
 - Created AGENTS.md and wiki base folders.
 - Added index.md and log.md.

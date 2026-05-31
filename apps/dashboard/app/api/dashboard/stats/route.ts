@@ -101,8 +101,18 @@ export async function GET(req: NextRequest) {
       // Redis may be unavailable — fall back to 0
     }
 
-    // TODO: Replace with real AI usage API when available
-    const ai_cost = 42.50;
+    // Real daily AI cost from ai_invocations (today)
+    let ai_cost = 0;
+    try {
+      const [aiRow] = await sql<{ cost: number }[]>`
+        SELECT COALESCE(SUM(cost_usd_micro)::double precision / 1000000.0, 0) AS cost
+        FROM ai_invocations
+        WHERE invoked_at >= DATE_TRUNC('day', NOW())
+      `;
+      ai_cost = aiRow?.cost ?? 0;
+    } catch {
+      // ai_invocations may not have data; default to 0
+    }
 
     // Real failure rate: (failed / total) * 100, rounded to 1 decimal
     const failure_rate = totalAll > 0

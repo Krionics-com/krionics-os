@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Plus, Trash2, Rocket, Pause, Check } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus, Trash2, Rocket, Pause, Check, CheckCircle2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -207,6 +207,30 @@ function ApolloSubTab({
   const [maxLeads, setMaxLeads] = useState<number>(initial.max_total_leads ?? 2000);
   const [thresholdMin, setThresholdMin] = useState<number>(initial.threshold_min ?? 100);
   const [saving, setSaving] = useState(false);
+  const [previewing, setPreviewing] = useState(false);
+  const [previewResult, setPreviewResult] = useState<{
+    searchParams: Record<string, any>;
+    valid: boolean;
+    missing: string[];
+  } | null>(null);
+
+  async function handlePreview() {
+    setPreviewing(true);
+    setPreviewResult(null);
+    try {
+      const res = await fetch(`/api/dashboard/clients/${slug}/apollo-preview`);
+      const body = await res.json();
+      if (!res.ok) {
+        toast.error(body.error ?? "Preview failed");
+        return;
+      }
+      setPreviewResult(body);
+    } catch (e: any) {
+      toast.error(e.message ?? "Preview failed");
+    } finally {
+      setPreviewing(false);
+    }
+  }
 
   // ICP preview data sourced from client.config
   const config = client.config ?? {};
@@ -358,13 +382,41 @@ function ApolloSubTab({
         )}
       </div>
 
-      {isAdmin && (
-        <div className="flex justify-end">
+      {/* Apollo Search Preview */}
+      {previewResult && (
+        <div className="rounded-lg border border-border p-4 space-y-2 bg-muted/30">
+          <div className="flex items-center gap-2">
+            <h4 className="text-sm font-semibold">Apollo Search Parameters</h4>
+            {previewResult.valid ? (
+              <Badge variant="secondary" className="text-xs">Valid</Badge>
+            ) : (
+              <Badge variant="destructive" className="text-xs">Missing fields</Badge>
+            )}
+          </div>
+          {!previewResult.valid && previewResult.missing.length > 0 && (
+            <p className="text-xs text-amber-600">
+              Missing: {previewResult.missing.join(", ")}
+            </p>
+          )}
+          <pre className="text-xs bg-background p-3 rounded border border-border overflow-x-auto">
+            {JSON.stringify(previewResult.searchParams, null, 2)}
+          </pre>
+          <p className="text-xs text-muted-foreground">
+            These are the parameters the scheduler will send to Apollo's mixed_people/search endpoint.
+          </p>
+        </div>
+      )}
+
+      <div className="flex justify-end gap-2">
+        <Button size="sm" variant="outline" onClick={handlePreview} disabled={previewing}>
+          {previewing ? "Loading…" : "Preview Apollo Search"}
+        </Button>
+        {isAdmin && (
           <Button size="sm" onClick={handleSave} disabled={saving}>
             {saving ? "Saving…" : "Save Apollo Config"}
           </Button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
@@ -524,13 +576,15 @@ function SequenceSubTab({
   slug: string;
   isAdmin: boolean;
 }) {
-  const initial: SequenceConfig = client.sequence_config ?? {
-    steps: [{ step: 1, name: "Initial Email", delay_days: 0 }],
-  };
+  const DEFAULT_STEPS: SequenceStep[] = [
+    { step: 1, name: "Initial Email", delay_days: 0 },
+    { step: 2, name: "Follow-up 1", delay_days: 3 },
+    { step: 3, name: "Follow-up 2", delay_days: 7 },
+    { step: 4, name: "Breakup", delay_days: 14 },
+  ];
+  const initial: SequenceConfig = client.sequence_config ?? { steps: DEFAULT_STEPS };
   const [steps, setSteps] = useState<SequenceStep[]>(
-    initial.steps?.length > 0
-      ? initial.steps
-      : [{ step: 1, name: "Initial Email", delay_days: 0 }]
+    initial.steps?.length > 0 ? initial.steps : DEFAULT_STEPS
   );
   const [saving, setSaving] = useState(false);
 
@@ -672,6 +726,32 @@ function InstantlySubTab({
   const [timezone, setTimezone] = useState(initial.timezone ?? "America/New_York");
   const [saving, setSaving] = useState(false);
 
+  type InstantlyCampaign = { id: string; name: string; status: string };
+  const [campaignList, setCampaignList] = useState<InstantlyCampaign[] | null>(null);
+  const [campaignsError, setCampaignsError] = useState<string | null>(null);
+  const [campaignsLoading, setCampaignsLoading] = useState(false);
+
+  async function loadCampaigns() {
+    setCampaignsLoading(true);
+    setCampaignsError(null);
+    try {
+      const res = await fetch("/api/dashboard/integrations/instantly/campaigns");
+      const body = await res.json();
+      if (!res.ok) {
+        setCampaignsError(body.error ?? "Failed to load Instantly campaigns");
+        setCampaignList([]);
+        return;
+      }
+      setCampaignList(body.campaigns ?? []);
+    } catch (e: any) {
+      setCampaignsError(e.message ?? "Failed to load Instantly campaigns");
+    } finally {
+      setCampaignsLoading(false);
+    }
+  }
+
+  useEffect(() => { loadCampaigns(); }, []);
+
   function addEmail() {
     const trimmed = emailInput.trim();
     if (!trimmed) return;
@@ -725,14 +805,43 @@ function InstantlySubTab({
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        <Field label="Campaign ID" id="instantly-campaign-id">
-          <Input
-            id="instantly-campaign-id"
-            placeholder="e.g. camp_abc123"
-            value={campaignId}
-            onChange={(e) => isAdmin && setCampaignId(e.target.value)}
-            disabled={!isAdmin}
-          />
+        <Field label="Campaign" id="instantly-campaign-id">
+          {campaignList && campaignList.length > 0 ? (
+            <select
+              id="instantly-campaign-id"
+              value={campaignId}
+              onChange={(e) => isAdmin && setCampaignId(e.target.value)}
+              disabled={!isAdmin}
+              className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <option value="">— Select a campaign —</option>
+              {campaignList.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name} ({c.status})
+                </option>
+              ))}
+            </select>
+          ) : (
+            <div className="space-y-1.5">
+              <Input
+                id="instantly-campaign-id"
+                placeholder={campaignsLoading ? "Loading…" : "Paste campaign ID"}
+                value={campaignId}
+                onChange={(e) => isAdmin && setCampaignId(e.target.value)}
+                disabled={!isAdmin || campaignsLoading}
+              />
+              {campaignsError && (
+                <p className="text-xs text-amber-600">
+                  {campaignsError} — paste ID manually below.
+                </p>
+              )}
+              {!campaignsError && campaignList?.length === 0 && (
+                <p className="text-xs text-muted-foreground">
+                  No campaigns found in Instantly account.
+                </p>
+              )}
+            </div>
+          )}
         </Field>
 
         <Field label="Daily Send Limit" id="instantly-daily-limit">
@@ -835,24 +944,19 @@ function InstantlySubTab({
 // ──────────────────────────────────────────────
 
 const REVIEW_MODE_OPTIONS: Array<{
-  value: "human" | "ai" | "auto";
+  value: "human" | "auto";
   label: string;
   description: string;
 }> = [
   {
     value: "human",
     label: "Human Review",
-    description: "Every AI sequence is reviewed by a human before sending.",
-  },
-  {
-    value: "ai",
-    label: "AI Review",
-    description: "An AI quality check approves/rejects sequences automatically.",
+    description: "Every AI sequence is reviewed by an operator before sending. Recommended.",
   },
   {
     value: "auto",
     label: "Auto",
-    description: "Sequences are pushed to Instantly immediately after generation.",
+    description: "Sequences are pushed to Instantly immediately after generation. No review.",
   },
 ];
 
@@ -865,9 +969,8 @@ function ReviewModeSubTab({
   slug: string;
   isAdmin: boolean;
 }) {
-  const [reviewMode, setReviewMode] = useState<"human" | "ai" | "auto">(
-    client.review_mode ?? "human"
-  );
+  const initialMode = (client.review_mode === "auto" ? "auto" : "human") as "human" | "auto";
+  const [reviewMode, setReviewMode] = useState<"human" | "auto">(initialMode);
   const [saving, setSaving] = useState(false);
 
   async function handleSave() {
@@ -894,7 +997,7 @@ function ReviewModeSubTab({
         subtitle="Choose how AI-generated sequences are handled before sending."
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {REVIEW_MODE_OPTIONS.map((opt) => (
           <label
             key={opt.value}
@@ -942,12 +1045,30 @@ function ReviewModeSubTab({
 // Main OutboundTab component
 // ──────────────────────────────────────────────
 
+type ChecklistItem = { key: string; label: string; ok: boolean };
+
 export function OutboundTab({ client, slug, isAdmin, onRefresh }: OutboundTabProps) {
   const [activeSubTab, setActiveSubTab] = useState<SubTab>("Apollo");
   const [launchLoading, setLaunchLoading] = useState(false);
+  const [checklist, setChecklist] = useState<ChecklistItem[] | null>(null);
+  const [ready, setReady] = useState(false);
 
   const isActive: boolean = !!client.outbound_active;
   const launchedAt: string | null = client.outbound_launched_at ?? null;
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`/api/dashboard/clients/${slug}/launch-outbound`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (cancelled) return;
+        setChecklist(data.checklist ?? null);
+        setReady(!!data.ready);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [slug, client.outbound_active, client.config, client.apollo_config,
+      client.sequence_config, client.instantly_config, client.review_mode]);
 
   async function handleLaunch() {
     setLaunchLoading(true);
@@ -955,7 +1076,16 @@ export function OutboundTab({ client, slug, isAdmin, onRefresh }: OutboundTabPro
       const res = await fetch(`/api/dashboard/clients/${slug}/launch-outbound`, {
         method: "POST",
       });
-      if (!res.ok) throw new Error((await res.json()).error ?? "Launch failed");
+      const body = await res.json();
+      if (!res.ok) {
+        if (body.missing?.length) {
+          toast.error(`Missing: ${body.missing.join(", ")}`);
+          setChecklist(body.checklist ?? null);
+        } else {
+          toast.error(body.error ?? "Launch failed");
+        }
+        return;
+      }
       toast.success("Outbound launched successfully");
       onRefresh();
     } catch (e: any) {
@@ -1026,10 +1156,11 @@ export function OutboundTab({ client, slug, isAdmin, onRefresh }: OutboundTabPro
             size="sm"
             variant={isActive ? "outline" : "default"}
             onClick={isActive ? handlePause : handleLaunch}
-            disabled={launchLoading}
+            disabled={launchLoading || (!isActive && !ready)}
             className={cn(
               isActive && "border-emerald-500/50 hover:border-destructive hover:text-destructive"
             )}
+            title={!isActive && !ready ? "Complete the preflight checklist to launch" : undefined}
           >
             {launchLoading ? (
               "Loading…"
@@ -1045,6 +1176,32 @@ export function OutboundTab({ client, slug, isAdmin, onRefresh }: OutboundTabPro
           </Button>
         )}
       </div>
+
+      {/* Preflight checklist (only shown when not yet active) */}
+      {!isActive && checklist && checklist.length > 0 && (
+        <div className="rounded-lg border border-border p-4 space-y-2">
+          <div className="flex items-center gap-2">
+            <h4 className="text-sm font-semibold">Preflight Checklist</h4>
+            <span className="text-xs text-muted-foreground">
+              {checklist.filter((c) => c.ok).length}/{checklist.length} complete
+            </span>
+          </div>
+          <ul className="space-y-1.5">
+            {checklist.map((item) => (
+              <li key={item.key} className="flex items-center gap-2 text-sm">
+                {item.ok ? (
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                ) : (
+                  <AlertCircle className="h-4 w-4 text-amber-600 shrink-0" />
+                )}
+                <span className={item.ok ? "text-foreground" : "text-muted-foreground"}>
+                  {item.label}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Sub-tab nav */}
       <div>

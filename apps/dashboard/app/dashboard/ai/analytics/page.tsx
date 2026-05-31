@@ -2,7 +2,7 @@
 
 import useSWR from "swr";
 import {
-  BarChart2, RefreshCw, Coins, Zap, ShieldAlert, Cpu, Timer, RefreshCcw, Info
+  BarChart2, RefreshCw, Coins, ShieldAlert, Cpu, Timer, RefreshCcw
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
@@ -97,22 +97,6 @@ export default function AIAnalyticsPage() {
             </div>
             <p className="text-xl font-extrabold mt-2 text-foreground font-mono">
               {(data.daily_tokens || 0).toLocaleString()}
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Card 3: Cache Hit Rate */}
-        <Card className="bg-card shadow-sm border border-border">
-          <CardContent className="pt-4 pb-3">
-            <div className="flex justify-between items-start text-muted-foreground">
-              <span className="text-[10px] uppercase font-bold tracking-wider">Cache Hit Rate</span>
-              <Zap className="h-4 w-4 text-emerald-500" />
-            </div>
-            <p className="text-xl font-extrabold mt-2 text-emerald-600 font-mono">
-              {data.cache_hit_rate}%
-            </p>
-            <p className="text-[9px] text-muted-foreground mt-1 flex items-center gap-0.5">
-              <Info className="h-2.5 w-2.5" /> TODO: Add redis cache layer
             </p>
           </CardContent>
         </Card>
