@@ -1,5 +1,14 @@
 # Wiki Log
 
+## [2026-05-31] audit-fix | C4 — AI ops cleanup: real metrics, prompt overrides (Issues 5, 8, 11, 12)
+- Removed all hardcoded fallback values (`0.42`, `8420`, `42%` cache rate, random baseline charts, `42.50` ai_cost) from analytics + stats APIs. Returns real DB aggregations with 0 when no data.
+- Stats endpoint now queries `ai_invocations` for today's real cost.
+- Removed "Cache Hit Rate" card (no real cache layer) and its "TODO" tooltip.
+- Migration 20260531000003 seeds 6 global `ai_prompts` rows (classifier / drafter / signal-extractor / sequence-writer / objection-handler / analytics-advisor).
+- New `loadPromptOverride(slug, clientId)` helper in workers — 60s in-memory cache, client-specific row preferred, falls back to global.
+- AIProvider interface extended with optional `PromptOverride` per method (system_prompt / model / temperature / max_tokens). Both Claude and OpenAI providers honour overrides.
+- sequence-generation worker reads the override for `sequence-writer-v1` before calling `generateSequence`.
+
 ## [2026-05-31] audit-fix | C3 — Instantly campaign dropdown + metric rename (Issues 7, 9)
 - Added `listInstantlyCampaigns()` client function and re-exported from `@krionics/workers`.
 - New API `GET /api/dashboard/integrations/instantly/campaigns` returns real Instantly campaigns.

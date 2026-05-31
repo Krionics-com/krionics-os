@@ -5,6 +5,7 @@ import { sql } from "../db.js";
 import { sequenceGenerationQueue, instantlyPushQueue } from "../queues.js";
 import { emitEvent } from "../emit-event.js";
 import { logAIInvocation, estimateCostMicro } from "../log-ai-invocation.js";
+import { loadPromptOverride } from "../prompt-overrides.js";
 
 const SequenceGenerationJobSchema = z.object({
   clientId: z.string().uuid(),
@@ -89,6 +90,7 @@ export function createSequenceGenerationWorker(): Worker<SequenceGenerationJob> 
             : 3;
 
       const start = Date.now();
+      const override = await loadPromptOverride("sequence-writer-v1", payload.clientId);
       let output: Awaited<ReturnType<typeof provider.generateSequence>>;
       try {
         output = await provider.generateSequence({
@@ -111,7 +113,12 @@ export function createSequenceGenerationWorker(): Worker<SequenceGenerationJob> 
             calcom_link: client.calcom_link
           },
           sequence_steps: sequenceSteps
-        });
+        }, override ? {
+          system_prompt: override.system_prompt,
+          model: override.model,
+          temperature: override.temperature,
+          max_tokens: override.max_tokens,
+        } : undefined);
       } catch (err) {
         const error = err instanceof Error ? err : new Error(String(err));
         const latencyMs = Date.now() - start;
