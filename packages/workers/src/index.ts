@@ -1,5 +1,5 @@
 import { Worker } from "bullmq";
-import { redis, moveToDLQ, analyticsAggregateQueue } from "./queues.js";
+import { redis, moveToDLQ, analyticsAggregateQueue, outboundSchedulerQueue } from "./queues.js";
 import { notifyDLQ } from "./notify-slack.js";
 import { createIngestWorker } from "./workers/ingest.js";
 import { createClassifyWorker } from "./workers/classify.js";
@@ -16,6 +16,7 @@ import { createAnalyticsIntelligenceWorker } from "./workers/analytics-intellige
 import { createSequenceGenerationWorker } from "./workers/sequence-generation.js";
 import { createInstantlyPushWorker } from "./workers/instantly-push.js";
 import { createObjectionIntelligenceWorker } from "./workers/objection-intelligence.js";
+import { createOutboundSchedulerWorker } from "./workers/outbound-scheduler.js";
 
 type ManagedWorker = {
   name: string;
@@ -55,7 +56,8 @@ const workers: ManagedWorker[] = [
   { name: "analytics:intelligence", worker: createAnalyticsIntelligenceWorker() },
   { name: "lead:sequence_generation", worker: createSequenceGenerationWorker() },
   { name: "lead:instantly_push", worker: createInstantlyPushWorker() },
-  { name: "reply:objection_intelligence", worker: createObjectionIntelligenceWorker() }
+  { name: "reply:objection_intelligence", worker: createObjectionIntelligenceWorker() },
+  { name: "outbound:scheduler", worker: createOutboundSchedulerWorker() }
 ];
 
 workers.forEach(attachDlqHandler);
@@ -67,6 +69,15 @@ analyticsAggregateQueue.add(
   { repeat: { every: 15 * 60 * 1000 }, jobId: "analytics-aggregate-daily-repeat" }
 ).catch((err) => {
   console.error("[workers] Failed to schedule analytics aggregator:", err);
+});
+
+// Schedule outbound scheduler to run every hour
+outboundSchedulerQueue.add(
+  "outbound_tick",
+  {},
+  { repeat: { every: 60 * 60 * 1000 }, jobId: "outbound-scheduler-tick" }
+).catch((err) => {
+  console.error("[workers] Failed to schedule outbound scheduler:", err);
 });
 
 console.log("[workers] RICR workers are running.");

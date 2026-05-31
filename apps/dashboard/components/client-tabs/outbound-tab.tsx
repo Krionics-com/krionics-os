@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Plus, Trash2, Rocket, Pause, Check } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus, Trash2, Rocket, Pause, Check, CheckCircle2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -942,12 +942,30 @@ function ReviewModeSubTab({
 // Main OutboundTab component
 // ──────────────────────────────────────────────
 
+type ChecklistItem = { key: string; label: string; ok: boolean };
+
 export function OutboundTab({ client, slug, isAdmin, onRefresh }: OutboundTabProps) {
   const [activeSubTab, setActiveSubTab] = useState<SubTab>("Apollo");
   const [launchLoading, setLaunchLoading] = useState(false);
+  const [checklist, setChecklist] = useState<ChecklistItem[] | null>(null);
+  const [ready, setReady] = useState(false);
 
   const isActive: boolean = !!client.outbound_active;
   const launchedAt: string | null = client.outbound_launched_at ?? null;
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`/api/dashboard/clients/${slug}/launch-outbound`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (cancelled) return;
+        setChecklist(data.checklist ?? null);
+        setReady(!!data.ready);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [slug, client.outbound_active, client.config, client.apollo_config,
+      client.sequence_config, client.instantly_config, client.review_mode]);
 
   async function handleLaunch() {
     setLaunchLoading(true);
@@ -955,7 +973,16 @@ export function OutboundTab({ client, slug, isAdmin, onRefresh }: OutboundTabPro
       const res = await fetch(`/api/dashboard/clients/${slug}/launch-outbound`, {
         method: "POST",
       });
-      if (!res.ok) throw new Error((await res.json()).error ?? "Launch failed");
+      const body = await res.json();
+      if (!res.ok) {
+        if (body.missing?.length) {
+          toast.error(`Missing: ${body.missing.join(", ")}`);
+          setChecklist(body.checklist ?? null);
+        } else {
+          toast.error(body.error ?? "Launch failed");
+        }
+        return;
+      }
       toast.success("Outbound launched successfully");
       onRefresh();
     } catch (e: any) {
@@ -1026,10 +1053,11 @@ export function OutboundTab({ client, slug, isAdmin, onRefresh }: OutboundTabPro
             size="sm"
             variant={isActive ? "outline" : "default"}
             onClick={isActive ? handlePause : handleLaunch}
-            disabled={launchLoading}
+            disabled={launchLoading || (!isActive && !ready)}
             className={cn(
               isActive && "border-emerald-500/50 hover:border-destructive hover:text-destructive"
             )}
+            title={!isActive && !ready ? "Complete the preflight checklist to launch" : undefined}
           >
             {launchLoading ? (
               "Loading…"
@@ -1045,6 +1073,32 @@ export function OutboundTab({ client, slug, isAdmin, onRefresh }: OutboundTabPro
           </Button>
         )}
       </div>
+
+      {/* Preflight checklist (only shown when not yet active) */}
+      {!isActive && checklist && checklist.length > 0 && (
+        <div className="rounded-lg border border-border p-4 space-y-2">
+          <div className="flex items-center gap-2">
+            <h4 className="text-sm font-semibold">Preflight Checklist</h4>
+            <span className="text-xs text-muted-foreground">
+              {checklist.filter((c) => c.ok).length}/{checklist.length} complete
+            </span>
+          </div>
+          <ul className="space-y-1.5">
+            {checklist.map((item) => (
+              <li key={item.key} className="flex items-center gap-2 text-sm">
+                {item.ok ? (
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                ) : (
+                  <AlertCircle className="h-4 w-4 text-amber-600 shrink-0" />
+                )}
+                <span className={item.ok ? "text-foreground" : "text-muted-foreground"}>
+                  {item.label}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Sub-tab nav */}
       <div>

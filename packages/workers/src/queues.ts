@@ -166,6 +166,17 @@ export const bookingReminderQueue = new Queue("booking-reminder", {
   }
 });
 
+// ── Outbound scheduler ───────────────────────────────────────────────────────
+
+export const outboundSchedulerQueue = new Queue("outbound-scheduler", {
+  ...baseQueueOptions,
+  defaultJobOptions: {
+    ...baseQueueOptions.defaultJobOptions,
+    attempts: 2,
+    backoff: { type: "fixed", delay: 60000 }
+  }
+});
+
 export const deadLetterQueue = new Queue("reply-dlq", {
   ...baseQueueOptions,
   defaultJobOptions: {
